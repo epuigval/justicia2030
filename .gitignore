@@ -1,11 +1,19 @@
+# Dependencies and generated output
 node_modules/
 .next/
+.vercel/
 coverage/
 *.tsbuildinfo
-.vercel/
+
+# Local environment files
 .env*
 !.env.example
-npm-debug.log*
 
-.vercel
+# Editor and operating-system state
 .idea/
+.DS_Store
+Thumbs.db
+
+# Local logs and caches
+*.log
+.eslintcache
