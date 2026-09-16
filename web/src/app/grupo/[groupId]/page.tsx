@@ -11,14 +11,21 @@ type GroupPageProps = {
 };
 
 export default function GroupPage({ params }: GroupPageProps) {
-  const groupId = decodeURIComponent(use(params).groupId).toUpperCase();
+  const groupId = decodeURIComponent(use(params).groupId).toLowerCase();
   const group = useWorkshopStore((state) => state.groups[groupId]);
   const progress = group ?? EMPTY_GROUP_PROGRESS;
+  const resetGroup = useWorkshopStore((state) => state.resetGroup);
+
+  function resetSession() {
+    if (window.confirm("Se borraran todas las elecciones de esta sesion. Deseas continuar?")) {
+      resetGroup(groupId);
+    }
+  }
 
   return (
     <main className="page-shell">
       <header className="hero">
-        <p className="eyebrow">Equipo {groupId}</p>
+        <p className="eyebrow">Tablero del equipo</p>
         <h1>{content.appTitle}</h1>
         <p>{content.appSubtitle}</p>
       </header>
@@ -58,6 +65,12 @@ export default function GroupPage({ params }: GroupPageProps) {
         <Link className="secondary-button" href={`/grupo/${encodeURIComponent(groupId)}/justicia-2030`}>
           Ir a Justicia 2030
         </Link>
+      </div>
+
+      <div className="mt-4 flex justify-end">
+        <button className="danger-button" onClick={resetSession} type="button">
+          Borrar elecciones y empezar de nuevo
+        </button>
       </div>
     </main>
   );

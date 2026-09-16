@@ -1,11 +1,21 @@
 "use client";
 
-import { content } from "@/data/content";
+import { useState } from "react";
+
+import { categoryById, content } from "@/data/content";
 import { useWorkshopStore } from "@/store/workshop-store";
 
 export default function FacilitatorPage() {
+  const [categoryId, setCategoryId] = useState("all");
   const facilitatorSelections = useWorkshopStore((state) => state.facilitatorSelections);
   const toggleFacilitatorCard = useWorkshopStore((state) => state.toggleFacilitatorCard);
+  const resetFacilitator = useWorkshopStore((state) => state.resetFacilitator);
+
+  function resetSession() {
+    if (window.confirm("Se borrara el consenso guardado por el dinamizador. Deseas continuar?")) {
+      resetFacilitator();
+    }
+  }
 
   return (
     <main className="page-shell">
@@ -15,7 +25,18 @@ export default function FacilitatorPage() {
         <p>Seleccion manual de prioridades consensuadas por fase. Sin calculo automatico.</p>
       </header>
 
-      <section className="grid gap-4">
+      <nav className="category-filter mt-6" aria-label="Filtrar tarjetas por categoria">
+        <button className={categoryId === "all" ? "filter-button is-active" : "filter-button"} onClick={() => setCategoryId("all")} type="button">
+          Todas
+        </button>
+        {content.categories.map((category) => (
+          <button key={category.id} className={categoryId === category.id ? "filter-button is-active" : "filter-button"} onClick={() => setCategoryId(category.id)} type="button">
+            {category.label}
+          </button>
+        ))}
+      </nav>
+
+      <section className="mt-4 grid gap-4">
         {content.phases.map((phase) => {
           const selected = facilitatorSelections[phase.id];
 
@@ -29,16 +50,19 @@ export default function FacilitatorPage() {
               <p className="mt-2 text-sm text-slate-600">{phase.description}</p>
 
               <div className="mt-4 grid gap-2 md:grid-cols-2 xl:grid-cols-3">
-                {phase.cards.filter((card) => card.active).map((card) => {
+                {phase.cards.filter((card) => card.active && (categoryId === "all" || card.categoryId === categoryId)).map((card) => {
                   const isSelected = selected.includes(card.id);
+                  const disabled = selected.length === content.maxSelectionsPerPhase && !isSelected;
 
                   return (
                     <button
                       key={card.id}
                       className={isSelected ? "selection-chip is-selected" : "selection-chip"}
+                      disabled={disabled}
                       onClick={() => toggleFacilitatorCard(phase.id, card.id)}
                       type="button"
                     >
+                      <span className="category-label">{categoryById[card.categoryId].label}</span>
                       {card.title}
                     </button>
                   );
@@ -48,6 +72,12 @@ export default function FacilitatorPage() {
           );
         })}
       </section>
+
+      <div className="mt-4 flex justify-end">
+        <button className="danger-button" onClick={resetSession} type="button">
+          Borrar consenso y empezar de nuevo
+        </button>
+      </div>
     </main>
   );
 }

@@ -1,11 +1,21 @@
-export type PhaseId = "justicia-actual" | "justicia-conectada" | "justicia-inteligente";
+export type PhaseId = string;
+export type CategoryId = string;
+
+export type Category = {
+  id: CategoryId;
+  label: string;
+  order: number;
+};
 
 export type Card = {
   id: string;
+  categoryId: CategoryId;
   title: string;
+  summary: string;
   challenge: string;
   solution: string;
   benefits: string[];
+  debateQuestion: string;
   visual?: string;
   active: boolean;
 };
@@ -21,17 +31,13 @@ export type Phase = {
 export type WorkshopContent = {
   appTitle: string;
   appSubtitle: string;
-  debateQuestion: string;
-  finalPrompt: string;
-  finalRecommendedLength: {
-    min: number;
-    max: number;
-  };
+  finalIntroduction: string;
+  promptTemplate: string;
   maxSelectionsPerPhase: number;
+  categories: Category[];
   phases: Phase[];
 };
 
 export type GroupProgress = {
   selectionsByPhase: Record<PhaseId, string[]>;
-  finalReflection: string;
 };

@@ -3,27 +3,20 @@
 import Link from "next/link";
 import { use } from "react";
 
-import { phaseById, content } from "@/data/content";
+import { categoryById, phaseById, content } from "@/data/content";
 import { useWorkshopStore } from "@/store/workshop-store";
-import { PhaseId } from "@/types/workshop";
 
 type CardDetailPageProps = {
   params: Promise<{ groupId: string; phaseId: string; cardId: string }>;
 };
 
-const validPhaseIds: PhaseId[] = [
-  "justicia-actual",
-  "justicia-conectada",
-  "justicia-inteligente",
-];
-
-function isPhaseId(value: string): value is PhaseId {
-  return validPhaseIds.includes(value as PhaseId);
+function isPhaseId(value: string): boolean {
+  return content.phases.some((phase) => phase.id === value);
 }
 
 export default function CardDetailPage({ params }: CardDetailPageProps) {
   const resolved = use(params);
-  const groupId = decodeURIComponent(resolved.groupId).toUpperCase();
+  const groupId = decodeURIComponent(resolved.groupId).toLowerCase();
   const phaseParam = decodeURIComponent(resolved.phaseId);
   const cardId = decodeURIComponent(resolved.cardId);
   const phaseId = isPhaseId(phaseParam) ? phaseParam : null;
@@ -35,6 +28,9 @@ export default function CardDetailPage({ params }: CardDetailPageProps) {
 
     return state.groups[groupId]?.selectionsByPhase[phaseId].includes(cardId) ?? false;
   });
+  const selectedCount = useWorkshopStore((state) =>
+    phaseId ? state.groups[groupId]?.selectionsByPhase[phaseId].length ?? 0 : 0,
+  );
   const toggle = useWorkshopStore((state) => state.toggleGroupCard);
 
   if (!phaseId) {
@@ -74,7 +70,7 @@ export default function CardDetailPage({ params }: CardDetailPageProps) {
       <article className="card-panel">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <p className="eyebrow">{phase.title}</p>
-          <span className="status-pill">Equipo {groupId}</span>
+          <span className="category-label">{categoryById[card.categoryId].label}</span>
         </div>
 
         <h1 className="mt-2 text-3xl font-semibold text-slate-900">{card.title}</h1>
@@ -100,12 +96,13 @@ export default function CardDetailPage({ params }: CardDetailPageProps) {
 
         <section className="mt-6 rounded-xl border border-blue-100 bg-blue-50 p-4">
           <h2 className="text-sm font-semibold uppercase tracking-wide text-blue-700">Para el debate</h2>
-          <p className="mt-2 text-sm text-blue-900">{content.debateQuestion}</p>
+          <p className="mt-2 text-sm text-blue-900">{card.debateQuestion}</p>
         </section>
 
         <div className="mt-6 flex flex-wrap gap-2">
           <button
             className={selected ? "secondary-button" : "primary-button"}
+            disabled={!selected && selectedCount === content.maxSelectionsPerPhase}
             onClick={() => toggle(groupId, phase.id, card.id)}
             type="button"
           >
@@ -118,6 +115,11 @@ export default function CardDetailPage({ params }: CardDetailPageProps) {
             Volver a exploracion
           </Link>
         </div>
+        {!selected && selectedCount === content.maxSelectionsPerPhase && (
+          <p className="selection-notice mt-4" role="status">
+            Ya habeis seleccionado 3 tarjetas. Retirad una antes de elegir esta.
+          </p>
+        )}
       </article>
     </main>
   );

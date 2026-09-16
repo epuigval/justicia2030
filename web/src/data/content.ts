@@ -1,196 +1,104 @@
-import { WorkshopContent } from "@/types/workshop";
+import { Card, CategoryId, WorkshopContent } from "@/types/workshop";
+
+const debateQuestion =
+  "Que impacto tendria esta iniciativa en la Justicia valenciana?";
+
+function card(
+  id: string,
+  categoryId: CategoryId,
+  title: string,
+  summary: string,
+  challenge: string,
+  solution: string,
+  benefits: string[],
+): Card {
+  return {
+    id,
+    categoryId,
+    title,
+    summary,
+    challenge,
+    solution,
+    benefits,
+    debateQuestion,
+    active: true,
+  };
+}
 
 export const content: WorkshopContent = {
   appTitle: "Justicia 2030",
-  appSubtitle: "Construyendo la justicia del futuro",
-  debateQuestion: "Que impacto tendria esta iniciativa en la Justicia valenciana?",
-  finalPrompt:
-    "Sintetizad vuestra vision compartida en una frase clara y accionable.",
-  finalRecommendedLength: {
-    min: 100,
-    max: 140,
-  },
+  appSubtitle: "Construyendo hoy la justicia del futuro",
+  finalIntroduction:
+    "Genera un prompt con las nueve decisiones del equipo y copialo en la herramienta de IA acordada.",
+  promptTemplate:
+    "Actua como especialista en innovacion publica y transformacion de la Justicia. A partir de las iniciativas seleccionadas en Justicia actual, Justicia conectada y Justicia inteligente, redacta una vision compartida de la Justicia valenciana en 2030. Sintetiza prioridades, impacto esperado y principios de implantacion. Evita rankings: todas las iniciativas tienen la misma importancia.",
   maxSelectionsPerPhase: 3,
+  categories: [
+    { id: "personas", label: "Personas", order: 1 },
+    { id: "procesos", label: "Procesos", order: 2 },
+    { id: "tecnologia", label: "Tecnologia", order: 3 },
+    { id: "gobernanza", label: "Gobernanza", order: 4 },
+  ],
   phases: [
     {
       id: "justicia-actual",
       title: "Justicia actual",
-      description:
-        "Identificad iniciativas de impacto inmediato para mejorar la atencion a la ciudadania.",
+      description: "Entendemos la situacion actual y priorizamos mejoras inmediatas.",
       order: 1,
       cards: [
-        {
-          id: "actual-1",
-          title: "Mejora de la atencion a la ciudadania",
-          challenge: "Canales de atencion poco accesibles y tiempos de respuesta irregulares.",
-          solution: "Implantar un modelo de atencion multicanal, inclusivo y orientado a necesidades reales.",
-          benefits: [
-            "Mejor experiencia ciudadana",
-            "Reduccion de tiempos de espera",
-            "Mayor confianza en el servicio publico",
-          ],
-          active: true,
-        },
-        {
-          id: "actual-2",
-          title: "Simplificacion procesal",
-          challenge: "Procesos con excesiva carga administrativa y pasos redundantes.",
-          solution: "Revisar tramites clave y eliminar duplicidades con criterios de simplificacion.",
-          benefits: [
-            "Menos friccion operativa",
-            "Agilidad en la tramitacion",
-            "Mayor claridad para profesionales y ciudadania",
-          ],
-          active: true,
-        },
-        {
-          id: "actual-3",
-          title: "Gestion del dato",
-          challenge: "Informacion fragmentada entre sistemas y baja trazabilidad de expedientes.",
-          solution: "Estandarizar estructuras de datos y habilitar cuadros de seguimiento operativos.",
-          benefits: [
-            "Mejores decisiones",
-            "Deteccion temprana de cuellos de botella",
-            "Mas transparencia interna",
-          ],
-          active: true,
-        },
-        {
-          id: "actual-4",
-          title: "Comunicacion clara",
-          challenge: "Lenguaje tecnico complejo en comunicaciones dirigidas a la ciudadania.",
-          solution: "Aplicar pautas de lenguaje claro y plantillas comprensibles en notificaciones.",
-          benefits: [
-            "Menos confusion",
-            "Mayor cumplimiento de requerimientos",
-            "Relacion mas cercana con la administracion",
-          ],
-          active: true,
-        },
+        card("actual-personas-1", "personas", "Mejora de la atencion a la ciudadania", "Una atencion accesible, clara y cercana.", "Los canales no siempre responden a necesidades diversas.", "Implantar un modelo multicanal, inclusivo y orientado a necesidades reales.", ["Mejor experiencia", "Menos espera", "Mayor confianza"]),
+        card("actual-personas-2", "personas", "Capacitacion de profesionales", "Competencias actualizadas para un servicio eficaz.", "La evolucion normativa y digital exige aprendizaje continuo.", "Crear itinerarios formativos por perfiles y casos reales.", ["Autonomia", "Adopcion", "Calidad"]),
+        card("actual-procesos-1", "procesos", "Simplificacion procesal", "Tramites mas simples, comprensibles y agiles.", "Existen pasos redundantes y carga administrativa elevada.", "Revisar tramites y eliminar duplicidades.", ["Agilidad", "Menos friccion", "Claridad"]),
+        card("actual-procesos-2", "procesos", "Lenguaje juridico claro", "Comunicaciones comprensibles para la ciudadania.", "El lenguaje tecnico dificulta atender resoluciones y requerimientos.", "Aplicar lenguaje claro y plantillas comprensibles.", ["Menos errores", "Mejor cumplimiento", "Accesibilidad"]),
+        card("actual-tecnologia-1", "tecnologia", "Gestion del dato", "Informacion consistente para decidir mejor.", "Los datos estan fragmentados y tienen baja trazabilidad.", "Estandarizar datos y habilitar cuadros de seguimiento.", ["Mejores decisiones", "Trazabilidad", "Anticipacion"]),
+        card("actual-tecnologia-2", "tecnologia", "Puesto de trabajo digital", "Herramientas coherentes para el trabajo diario.", "La dispersion de aplicaciones genera retrabajo.", "Unificar accesos y priorizar herramientas por tareas.", ["Productividad", "Menos errores", "Coherencia"]),
+        card("actual-gobernanza-1", "gobernanza", "Indicadores de servicio", "Medir resultados para mejorar continuamente.", "Falta una vision compartida del rendimiento del servicio.", "Definir indicadores comunes de calidad, tiempos y experiencia.", ["Transparencia", "Priorizacion", "Seguimiento"]),
+        card("actual-gobernanza-2", "gobernanza", "Coordinacion institucional", "Decisiones alineadas entre actores de la Justicia.", "Las responsabilidades distribuidas dificultan una respuesta coordinada.", "Establecer foros de decision y protocolos estables.", ["Alineamiento", "Rapidez", "Responsabilidad"]),
       ],
     },
     {
       id: "justicia-conectada",
       title: "Justicia conectada",
-      description:
-        "Priorizad capacidades para conectar actores, procesos y servicios de extremo a extremo.",
+      description: "Conectamos personas, procesos e instituciones para avanzar juntos.",
       order: 2,
       cards: [
-        {
-          id: "conectada-1",
-          title: "Interoperabilidad institucional",
-          challenge: "Baja coordinacion entre organismos implicados en los procedimientos.",
-          solution: "Definir integraciones priorizadas y acuerdos de intercambio seguro de informacion.",
-          benefits: [
-            "Tramites mas fluidos",
-            "Menos duplicidad documental",
-            "Respuesta coordinada al ciudadano",
-          ],
-          active: true,
-        },
-        {
-          id: "conectada-2",
-          title: "Experiencia omnicanal",
-          challenge: "Experiencias desconectadas entre atencion presencial, telefonica y digital.",
-          solution: "Unificar criterios de atencion y seguimiento de casos en todos los canales.",
-          benefits: [
-            "Continuidad en la atencion",
-            "Mayor accesibilidad",
-            "Satisfaccion de usuarios y profesionales",
-          ],
-          active: true,
-        },
-        {
-          id: "conectada-3",
-          title: "Colaboracion profesional",
-          challenge: "Barreras para coordinar actuaciones entre perfiles juridicos y tecnicos.",
-          solution: "Implantar espacios de trabajo compartido con informacion contextualizada.",
-          benefits: [
-            "Decisiones mejor alineadas",
-            "Menor retrabajo",
-            "Incremento de productividad",
-          ],
-          active: true,
-        },
-        {
-          id: "conectada-4",
-          title: "Gobernanza de servicio",
-          challenge: "Dificultad para priorizar mejoras con una vision transversal.",
-          solution: "Establecer un marco de gobierno con indicadores y cadencias de mejora.",
-          benefits: [
-            "Priorizacion compartida",
-            "Seguimiento continuo",
-            "Mayor capacidad de adaptacion",
-          ],
-          active: true,
-        },
+        card("conectada-personas-1", "personas", "Experiencia omnicanal", "Continuidad entre atencion presencial, telefonica y digital.", "Los canales ofrecen experiencias desconectadas.", "Unificar criterios de atencion y seguimiento.", ["Continuidad", "Accesibilidad", "Satisfaccion"]),
+        card("conectada-personas-2", "personas", "Colaboracion profesional", "Espacios compartidos para perfiles juridicos y tecnicos.", "Existen barreras para coordinar actuaciones multidisciplinares.", "Implantar espacios de trabajo con informacion contextualizada.", ["Alineamiento", "Menos retrabajo", "Productividad"]),
+        card("conectada-procesos-1", "procesos", "Expediente de extremo a extremo", "Seguimiento continuo entre organismos.", "Los cambios de organismo rompen la trazabilidad.", "Definir un flujo compartido con estados y responsables comunes.", ["Trazabilidad", "Menos demoras", "Coordinacion"]),
+        card("conectada-procesos-2", "procesos", "Tramitacion proactiva", "Avisos anticipados para evitar bloqueos.", "Los retrasos se detectan cuando ya afectan al plazo.", "Activar alertas preventivas basadas en hitos.", ["Prevencion", "Agilidad", "Menos incidencias"]),
+        card("conectada-tecnologia-1", "tecnologia", "Interoperabilidad institucional", "Intercambio seguro de informacion.", "Los sistemas aislados obligan a repetir aportaciones.", "Priorizar integraciones y acuerdos de intercambio seguro.", ["Menos duplicidad", "Fluidez", "Coordinacion"]),
+        card("conectada-tecnologia-2", "tecnologia", "Identidad y firma integradas", "Accesos y firmas coherentes en el ecosistema.", "La diversidad de mecanismos dificulta el uso continuado.", "Unificar identidad, permisos y firma.", ["Seguridad", "Facilidad", "Continuidad"]),
+        card("conectada-gobernanza-1", "gobernanza", "Gobernanza del dato compartido", "Reglas comunes para datos fiables.", "No siempre esta claro quien mantiene cada dato.", "Asignar propietarios, calidad y condiciones de uso.", ["Confianza", "Calidad", "Uso responsable"]),
+        card("conectada-gobernanza-2", "gobernanza", "Gobernanza de servicio", "Una vision transversal para priorizar mejoras.", "Las mejoras locales no siempre optimizan el servicio completo.", "Establecer gobierno, indicadores y cadencias comunes.", ["Priorizacion", "Seguimiento", "Adaptacion"]),
       ],
     },
     {
       id: "justicia-inteligente",
       title: "Justicia inteligente",
-      description:
-        "Seleccionad iniciativas que aprovechen tecnologia y talento para un servicio mas predictivo.",
+      description: "Usamos tecnologia y conocimiento para ser mas eficientes.",
       order: 3,
       cards: [
-        {
-          id: "inteligente-1",
-          title: "Asistentes de apoyo al trabajo",
-          challenge: "Sobrecarga en tareas repetitivas de analisis documental y redaccion.",
-          solution: "Incorporar asistentes de apoyo para preparar borradores y resaltar riesgos.",
-          benefits: [
-            "Ahorro de tiempo",
-            "Mejor foco en tareas de mayor valor",
-            "Reduccion de errores de forma",
-          ],
-          active: true,
-        },
-        {
-          id: "inteligente-2",
-          title: "Analitica predictiva",
-          challenge: "Escasa anticipacion de saturaciones y demoras en el servicio.",
-          solution: "Aplicar modelos de prediccion para planificar carga y recursos con antelacion.",
-          benefits: [
-            "Planificacion proactiva",
-            "Mejor uso de recursos",
-            "Disminucion de tiempos de resolucion",
-          ],
-          active: true,
-        },
-        {
-          id: "inteligente-3",
-          title: "Automatizacion responsable",
-          challenge: "Procesos manuales con alto consumo de tiempo y variabilidad.",
-          solution: "Automatizar tareas estandar con controles de calidad y supervision humana.",
-          benefits: [
-            "Eficiencia operativa",
-            "Mayor consistencia",
-            "Escalabilidad del servicio",
-          ],
-          active: true,
-        },
-        {
-          id: "inteligente-4",
-          title: "Capacitacion digital continua",
-          challenge: "Brecha de competencias para aprovechar nuevas herramientas.",
-          solution: "Crear itinerarios formativos por perfiles y practicas guiadas por casos reales.",
-          benefits: [
-            "Adopcion mas rapida",
-            "Mayor autonomia profesional",
-            "Cultura de mejora continua",
-          ],
-          active: true,
-        },
+        card("inteligente-personas-1", "personas", "Asistentes de apoyo al trabajo", "Apoyo inteligente en analisis y redaccion.", "Las tareas repetitivas reducen el tiempo para labores de valor.", "Incorporar asistentes supervisados para borradores y riesgos.", ["Ahorro de tiempo", "Mejor foco", "Menos errores"]),
+        card("inteligente-personas-2", "personas", "Capacitacion digital continua", "Aprendizaje conectado con casos reales.", "La brecha de competencias limita nuevas soluciones.", "Crear itinerarios por perfiles con practica guiada.", ["Adopcion", "Autonomia", "Mejora continua"]),
+        card("inteligente-procesos-1", "procesos", "Automatizacion responsable", "Tareas estandar con supervision humana.", "Los procesos manuales consumen tiempo y generan variabilidad.", "Automatizar tareas con controles y trazabilidad.", ["Eficiencia", "Consistencia", "Escalabilidad"]),
+        card("inteligente-procesos-2", "procesos", "Clasificacion inteligente", "Documentos encaminados desde el primer momento.", "La clasificacion manual produce esperas y reasignaciones.", "Proponer clasificaciones mediante modelos con revision humana.", ["Rapidez", "Menos reasignaciones", "Calidad"]),
+        card("inteligente-tecnologia-1", "tecnologia", "Analitica predictiva", "Anticipacion de cargas y demoras.", "La planificacion reacciona tarde a cambios en la demanda.", "Aplicar modelos predictivos para planificar recursos.", ["Planificacion", "Mejor uso de recursos", "Menos demoras"]),
+        card("inteligente-tecnologia-2", "tecnologia", "Busqueda juridica aumentada", "Acceso rapido a informacion relevante.", "Localizar antecedentes exige consultar multiples fuentes.", "Combinar busqueda semantica, filtros y fuentes verificables.", ["Rapidez", "Cobertura", "Trazabilidad"]),
+        card("inteligente-gobernanza-1", "gobernanza", "Marco de IA responsable", "Criterios para adoptar IA con garantias.", "La IA plantea riesgos juridicos, eticos y operativos.", "Definir principios, evaluaciones y responsabilidades.", ["Confianza", "Cumplimiento", "Transparencia"]),
+        card("inteligente-gobernanza-2", "gobernanza", "Evaluacion continua de algoritmos", "Control de calidad, sesgos e impacto.", "El rendimiento de los modelos cambia con el tiempo.", "Monitorizar resultados y establecer revision y retirada.", ["Calidad", "Equidad", "Control"]),
       ],
     },
   ],
 };
 
-export const phaseById = Object.fromEntries(content.phases.map((phase) => [phase.id, phase]));
+export const phaseById = Object.fromEntries(
+  content.phases.map((phase) => [phase.id, phase]),
+);
 
 export const activeCardsByPhaseId = Object.fromEntries(
-  content.phases.map((phase) => [
-    phase.id,
-    phase.cards.filter((card) => card.active),
-  ]),
+  content.phases.map((phase) => [phase.id, phase.cards.filter((item) => item.active)]),
+);
+
+export const categoryById = Object.fromEntries(
+  content.categories.map((category) => [category.id, category]),
 );

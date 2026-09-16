@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
 import { content } from "@/data/content";
 import { GroupProgress, PhaseId } from "@/types/workshop";
@@ -8,31 +9,25 @@ type WorkshopState = {
   facilitatorSelections: Record<PhaseId, string[]>;
   getGroup: (groupId: string) => GroupProgress;
   toggleGroupCard: (groupId: string, phaseId: PhaseId, cardId: string) => void;
-  setFinalReflection: (groupId: string, value: string) => void;
   resetGroup: (groupId: string) => void;
   toggleFacilitatorCard: (phaseId: PhaseId, cardId: string) => void;
+  resetFacilitator: () => void;
 };
 
+const createEmptySelections = (): Record<PhaseId, string[]> =>
+  Object.fromEntries(content.phases.map((phase) => [phase.id, []]));
+
 const createEmptyProgress = (): GroupProgress => ({
-  selectionsByPhase: {
-    "justicia-actual": [],
-    "justicia-conectada": [],
-    "justicia-inteligente": [],
-  },
-  finalReflection: "",
+  selectionsByPhase: createEmptySelections(),
 });
 
 export const EMPTY_GROUP_PROGRESS: GroupProgress = createEmptyProgress();
 
 const MAX_SELECTIONS = content.maxSelectionsPerPhase;
 
-export const useWorkshopStore = create<WorkshopState>((set, get) => ({
+export const useWorkshopStore = create<WorkshopState>()(persist((set, get) => ({
   groups: {},
-  facilitatorSelections: {
-    "justicia-actual": [],
-    "justicia-conectada": [],
-    "justicia-inteligente": [],
-  },
+  facilitatorSelections: createEmptySelections(),
   getGroup: (groupId) => {
     return get().groups[groupId] ?? createEmptyProgress();
   },
@@ -75,21 +70,6 @@ export const useWorkshopStore = create<WorkshopState>((set, get) => ({
       };
     });
   },
-  setFinalReflection: (groupId, value) => {
-    set((state) => {
-      const group = state.groups[groupId] ?? createEmptyProgress();
-
-      return {
-        groups: {
-          ...state.groups,
-          [groupId]: {
-            ...group,
-            finalReflection: value,
-          },
-        },
-      };
-    });
-  },
   resetGroup: (groupId) => {
     set((state) => ({
       groups: {
@@ -124,4 +104,16 @@ export const useWorkshopStore = create<WorkshopState>((set, get) => ({
       };
     });
   },
+  resetFacilitator: () => {
+    set({
+      facilitatorSelections: createEmptySelections(),
+    });
+  },
+}), {
+  name: "justicia-2030-session",
+  version: 2,
+  partialize: (state) => ({
+    groups: state.groups,
+    facilitatorSelections: state.facilitatorSelections,
+  }),
 }));

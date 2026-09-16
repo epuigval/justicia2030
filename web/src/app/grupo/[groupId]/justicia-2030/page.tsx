@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { use } from "react";
+import { use, useState } from "react";
 
-import { content } from "@/data/content";
+import { categoryById, content } from "@/data/content";
 import { EMPTY_GROUP_PROGRESS, useWorkshopStore } from "@/store/workshop-store";
 
 type FinalPageProps = {
@@ -11,22 +11,43 @@ type FinalPageProps = {
 };
 
 export default function FinalPage({ params }: FinalPageProps) {
-  const groupId = decodeURIComponent(use(params).groupId).toUpperCase();
+  const groupId = decodeURIComponent(use(params).groupId).toLowerCase();
   const group = useWorkshopStore((state) => state.groups[groupId]);
   const progress = group ?? EMPTY_GROUP_PROGRESS;
-  const setFinalReflection = useWorkshopStore((state) => state.setFinalReflection);
-  const length = progress.finalReflection.length;
+  const [copied, setCopied] = useState(false);
 
-  const min = content.finalRecommendedLength.min;
-  const max = content.finalRecommendedLength.max;
-  const withinRange = length >= min && length <= max;
+  const completedPhases = content.phases.filter(
+    (phase) =>
+      progress.selectionsByPhase[phase.id].length === content.maxSelectionsPerPhase,
+  ).length;
+  const isComplete = completedPhases === content.phases.length;
+
+  const promptSections = content.phases.map((phase) => {
+    const selectedCards = progress.selectionsByPhase[phase.id]
+      .map((cardId) => phase.cards.find((card) => card.id === cardId))
+      .filter((card) => card !== undefined);
+
+    return [
+      `${phase.title}:`,
+      ...selectedCards.map(
+        (card) =>
+          `- ${card.title} [${categoryById[card.categoryId].label}]: ${card.summary}`,
+      ),
+    ].join("\n");
+  });
+  const generatedPrompt = `${content.promptTemplate}\n\n${promptSections.join("\n\n")}`;
+
+  async function copyPrompt() {
+    await navigator.clipboard.writeText(generatedPrompt);
+    setCopied(true);
+  }
 
   return (
     <main className="page-shell">
       <header className="hero">
-        <p className="eyebrow">Equipo {groupId}</p>
+        <p className="eyebrow">Etapa final</p>
         <h1>Justicia 2030</h1>
-        <p>{content.finalPrompt}</p>
+        <p>{content.finalIntroduction}</p>
       </header>
 
       <section className="card-panel">
@@ -51,31 +72,36 @@ export default function FinalPage({ params }: FinalPageProps) {
       </section>
 
       <section className="card-panel mt-4">
-        <label className="text-sm font-semibold uppercase tracking-wide text-slate-700" htmlFor="finalReflection">
-          Frase consensuada
-        </label>
-        <textarea
-          className="mt-2 min-h-32 w-full rounded-xl border border-slate-300 bg-white p-3 text-slate-800 outline-none ring-blue-300 transition focus:ring"
-          id="finalReflection"
-          maxLength={220}
-          onChange={(event) => setFinalReflection(groupId, event.target.value)}
-          placeholder="Escribid aqui vuestra vision compartida..."
-          value={progress.finalReflection}
-        />
-
-        <div className="mt-3 flex items-center justify-between gap-3">
-          <p className={withinRange ? "text-sm text-green-700" : "text-sm text-amber-700"}>
-            Recomendado: {min}-{max} caracteres.
-          </p>
-          <span className="status-pill">{length} caracteres</span>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 className="text-xl font-semibold text-slate-900">Prompt Justicia 2030</h2>
+            <p className="mt-1 text-sm text-slate-600">
+              {isComplete
+                ? "Las nueve decisiones estan completas. Ya podeis copiar el prompt."
+                : `Completad las tres fases para generar el prompt (${completedPhases}/${content.phases.length}).`}
+            </p>
+          </div>
+          <span className="status-pill">
+            {Object.values(progress.selectionsByPhase).flat().length}/
+            {content.phases.length * content.maxSelectionsPerPhase}
+          </span>
         </div>
+
+        {isComplete && (
+          <pre className="prompt-preview mt-4 whitespace-pre-wrap">{generatedPrompt}</pre>
+        )}
 
         <div className="mt-5 flex flex-wrap gap-2">
           <Link className="secondary-button" href={`/grupo/${encodeURIComponent(groupId)}`}>
             Volver al tablero
           </Link>
-          <button className="primary-button" type="button">
-            Finalizar
+          <button
+            className="primary-button"
+            disabled={!isComplete}
+            onClick={copyPrompt}
+            type="button"
+          >
+            {copied ? "Prompt copiado" : "Copiar prompt"}
           </button>
         </div>
       </section>
