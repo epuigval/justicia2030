@@ -1,0 +1,132 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f3f7ff;
+  --foreground: #15213b;
+  --surface: #ffffff;
+  --primary: #155eef;
+  --primary-strong: #0f44b7;
+  --secondary: #fff4e6;
+  --secondary-strong: #ea7a00;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-body);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-body), sans-serif;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-title), sans-serif;
+}
+
+.page-shell {
+  width: min(1200px, 94vw);
+  margin: 1.5rem auto;
+}
+
+.hero {
+  border: 1px solid #d9e3ff;
+  border-radius: 1rem;
+  background: linear-gradient(125deg, #ffffff 0%, #eef4ff 50%, #fff7ec 100%);
+  padding: 1.25rem;
+}
+
+.eyebrow {
+  color: #4168b8;
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.hero h1 {
+  margin-top: 0.5rem;
+  font-size: clamp(1.9rem, 2vw + 1rem, 2.6rem);
+  line-height: 1.1;
+  color: #14203d;
+}
+
+.hero p {
+  margin-top: 0.5rem;
+  font-size: 1rem;
+  color: #34528f;
+}
+
+.card-panel {
+  border: 1px solid #d9e3ff;
+  border-radius: 1rem;
+  background-color: var(--surface);
+  padding: 1rem;
+  box-shadow: 0 6px 20px rgba(21, 33, 59, 0.06);
+}
+
+.soft-block {
+  border: 1px solid #e3ebff;
+  border-radius: 0.9rem;
+  background: #f8fbff;
+  padding: 0.85rem;
+}
+
+.primary-button {
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: var(--primary);
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 0.9rem;
+  padding: 0.55rem 0.95rem;
+  transition: background-color 140ms ease;
+}
+
+.primary-button:hover {
+  background: var(--primary-strong);
+}
+
+.secondary-button {
+  border: 1px solid #bfd0ff;
+  border-radius: 999px;
+  color: #1f3f86;
+  background: #ffffff;
+  font-weight: 600;
+  font-size: 0.9rem;
+  padding: 0.55rem 0.95rem;
+}
+
+.secondary-button:hover {
+  background: #eef4ff;
+}
+
+.status-pill {
+  border: 1px solid #c4d4ff;
+  border-radius: 999px;
+  background: #edf3ff;
+  color: #1f3f86;
+  padding: 0.2rem 0.7rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.selection-chip {
+  border: 1px solid #d6e1ff;
+  border-radius: 0.8rem;
+  padding: 0.65rem;
+  text-align: left;
+  font-size: 0.9rem;
+  color: #27426e;
+  background: #ffffff;
+}
+
+.selection-chip.is-selected {
+  border-color: #ffcb8b;
+  background: var(--secondary);
+  color: #8b4900;
+}
