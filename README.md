@@ -1,93 +1,136 @@
-# justicia-2030
+# Justicia 2030
 
+Aplicación web para facilitar un workshop presencial: equipos independientes y un dinamizador exploran un catálogo común, seleccionan prioridades por fase y obtienen un prompt local de «Justicia 2030».
 
+La Iteración 1 funcional está implementada. La Iteración 2 de hardening y QA final está documentada, pero no forma parte de esta entrega.
 
-## Getting started
+## Requisitos
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+- Node.js `>=20.9.0 <25` (se recomienda una versión LTS compatible).
+- npm 10 o posterior.
+- Navegador reciente Chrome, Edge o Safari.
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+Las versiones de dependencias están fijadas en `package.json` y `package-lock.json`.
 
-## Add your files
+Se fijan TypeScript 6 y ESLint 9 porque son las versiones verificadas compatibles con los plugins de TypeScript y React incluidos por la configuración actual de Next.js.
 
-* [Create](https://docs.gitlab.com/user/project/repository/web_editor/#create-a-file) or [upload](https://docs.gitlab.com/user/project/repository/web_editor/#upload-a-file) files
-* [Add files using the command line](https://docs.gitlab.com/topics/git/add_files/#add-files-to-a-git-repository) or push an existing Git repository with the following command:
+## Instalación y ejecución
 
+```bash
+npm install
+npm run dev
 ```
-cd existing_repo
-git remote add origin https://umane.emeal.nttdata.com/git/DEXWEDEXWEBEXPERIENC/coe-liferay/workshops/justicia-2030.git
-git branch -M main
-git push -uf origin main
+
+Abre `http://localhost:3000`. No se necesitan variables de entorno, backend ni servicios externos.
+
+## Scripts
+
+| Comando | Uso |
+| --- | --- |
+| `npm run dev` | Servidor local de desarrollo. |
+| `npm run build` | Build de producción Next.js. |
+| `npm start` | Sirve un build ya generado. |
+| `npm test` | Suite Vitest de dominio y componentes. |
+| `npm run lint` | ESLint con reglas Next.js y TypeScript. |
+| `npm run typecheck` | TypeScript estricto sin emitir archivos. |
+
+## Rutas
+
+- `/`: entrada y continuación/inicio de equipo.
+- `/team`: resumen de equipo.
+- `/team/phase/[phaseId]`: exploración de una fase.
+- `/team/phase/[phaseId]/card/[cardId]`: detalle de tarjeta.
+- `/team/justicia-2030`: resultado del equipo.
+- `/facilitator`: espacio independiente del dinamizador.
+
+No existe `teamId`, ruta por equipo ni identificación nominal.
+
+## Estructura
+
+```text
+src/app/             rutas, layouts, 404 y estilos
+src/components/      UI reutilizable
+src/config/          configuración, contenido y plantilla del prompt
+src/context/         reducer y proveedor por ámbito
+src/domain/          tipos y funciones puras
+src/persistence/     adaptador localStorage V1
+tests/domain/        catálogo, motor, prompt y persistencia
+tests/components/    interacción principal
+docs/                especificación y plan de las dos iteraciones
 ```
 
-## Integrate with your tools
+## Configuración y contenido
 
-* [Set up project integrations](https://umane.emeal.nttdata.com/git/DEXWEDEXWEBEXPERIENC/coe-liferay/workshops/justicia-2030/-/settings/integrations)
+La fuente central es `src/config/workshop.ts`:
 
-## Collaborate with your team
+- `phases`: añade, elimina o reordena fases mediante `order`.
+- `categories`: modifica categorías y su orden.
+- `cards`: modifica las tarjetas y sus relaciones `phaseId`/`categoryId`.
+- `maxSelectionsPerPhase`: cambia el máximo funcional por fase.
+- `title` e `intro`: textos principales.
 
-* [Invite team members and collaborators](https://docs.gitlab.com/user/project/members/)
-* [Create a new merge request](https://docs.gitlab.com/user/project/merge_requests/creating_merge_requests/)
-* [Automatically close issues from merge requests](https://docs.gitlab.com/user/project/issues/managing_issues/#closing-issues-automatically)
-* [Enable merge request approvals](https://docs.gitlab.com/user/project/merge_requests/approvals/)
-* [Set auto-merge](https://docs.gitlab.com/user/project/merge_requests/auto_merge/)
+Los componentes, filtros, navegación, primera fase, estado vacío, progreso, completitud y agrupación recorren esta configuración. El catálogo inicial tiene exactamente tres fases, cuatro categorías y veinticuatro tarjetas —ocho por fase y dos por combinación fase/categoría—, pero esos conteos son invariantes del fixture, no restricciones del motor.
 
-## Test and Deploy
+Los demás textos de interfaz viven junto a los componentes que describen acciones genéricas; los textos de negocio, nombres y contenido no se codifican dentro de tarjetas React.
 
-Use the built-in continuous integration in GitLab.
+## Plantilla de Justicia 2030
 
-* [Get started with GitLab CI/CD](https://docs.gitlab.com/ci/quick_start/)
-* [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/user/application_security/sast/)
-* [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/topics/autodevops/requirements/)
-* [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/user/clusters/agent/)
-* [Set up protected environments](https://docs.gitlab.com/ci/environments/protected_environments/)
+Toda la redacción está en `src/config/prompt-template.ts`. El generador puro en `src/domain/prompt.ts` recorre las fases y tarjetas en orden canónico, sin asumir sus conteos.
 
-***
+La plantilla actual es un borrador funcional **pendiente de validación por el equipo de Innovation**. Puede ajustarse en su archivo central sin cambiar componentes. Si cambia el número de fases o tarjetas requeridas, también debe revisarse la redacción provisional que actualmente menciona tres fases y nueve tarjetas.
 
-# Editing this README
+El prompt solo se genera cuando cada fase tiene exactamente el máximo configurado. No se almacena ni se envía: se muestra y se copia mediante la API del portapapeles.
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
+## Persistencia, continuación y reinicio
 
-## Suggestions for a good README
+La aplicación guarda únicamente `schemaVersion` y los IDs seleccionados:
 
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
+- Equipo: `justicia2030:v1:team`.
+- Dinamizador: `justicia2030:v1:facilitator`.
 
-## Name
-Choose a self-explaining name for your project.
+Cada rol tiene una instancia separada de contexto/reducer. La hidratación se realiza en cliente y no se escribe el estado vacío antes de completarla. Un error básico de lectura o escritura muestra un aviso y permite continuar en memoria.
 
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
+Cuando existen selecciones de equipo, `/` ofrece «Continuar partida». «Comenzar nueva partida» elimina solo el estado del equipo; «Comenzar nueva sesión» elimina solo el del dinamizador. Ambos requieren confirmación y nunca se usa `localStorage.clear()`.
 
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
+Cada equipo debe usar su propio dispositivo o perfil. Solo hay una sesión de equipo activa por perfil. No existe sincronización entre equipos, con el dinamizador ni entre pestañas; si se abren varias pestañas, gana el último guardado. Borrar manualmente los datos del sitio desde el navegador elimina ambos estados de ese navegador.
 
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
+## Seguridad, privacidad y funcionamiento
 
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+- La aplicación funciona online y no garantiza modo offline.
+- No carga recursos remotos en runtime: usa fuentes del sistema, assets locales y dependencias npm empaquetadas.
+- No hay APIs externas, llamadas a IA, analítica, trackers, backend, autenticación ni secretos.
+- Las dependencias npm se descargan en instalación/build; esto no introduce cargas remotas durante el uso.
+- `localStorage` no es un control de acceso ni protege frente a una persona con DevTools.
+- No deben introducirse datos personales, expedientes ni información confidencial en las tarjetas.
 
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
+## Pruebas y build
 
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+```bash
+npm test
+npm run lint
+npm run typecheck
+npm run build
+```
 
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
+La suite separa invariantes específicas del fixture y reglas genéricas. Incluye una configuración sintética con cantidades distintas para evitar acoplamiento a 3/4/24.
 
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
+## Despliegue en Vercel
 
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
+Importa el repositorio en Vercel y utiliza la detección automática de Next.js. No configures variables de entorno ni `output: "export"`; el proyecto usa el despliegue nativo estándar. El comando de build es `npm run build`.
 
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
+## Limitaciones del MVP
 
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
+No incluye backend, autenticación, sincronización, comunicación entre roles, tiempo real, IA, CMS, Excel, analítica, PWA, offline garantizado, historial, múltiples partidas por perfil, ranking, drag and drop ni identidad nominal de equipo. Una identificación nominal podría estudiarse en una versión posterior, pero no está diseñada ni preparada en este MVP.
 
-## License
-For open source projects, say how it is licensed.
+## Iteración 2 pendiente
 
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+- Normalización exhaustiva y recuperación selectiva de estados corruptos.
+- Matriz completa de errores de lectura, escritura y borrado; almacenamiento bloqueado, cuota y fallback en memoria validado.
+- Pruebas defensivas de todos los estados límite y portapapeles.
+- Auditoría sistemática de accesibilidad, teclado, foco, contraste y lectores de pantalla.
+- QA manual responsive, navegadores objetivo y contenidos largos.
+- Cabeceras de seguridad y CSP definitiva verificadas con Next.js/Vercel.
+- Revisión de dependencias y vulnerabilidades.
+- Revisión final de documentación y verificación de producción.
+
+Consulta [la especificación](docs/SPEC.md) y [el plan](docs/IMPLEMENTATION_PLAN.md) para el detalle completo y la separación formal entre iteraciones.

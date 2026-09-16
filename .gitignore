@@ -1,0 +1,11 @@
+node_modules/
+.next/
+coverage/
+*.tsbuildinfo
+.vercel/
+.env*
+!.env.example
+npm-debug.log*
+
+.vercel
+.idea/

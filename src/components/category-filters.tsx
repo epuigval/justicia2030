@@ -1,0 +1,21 @@
+import { orderedCategories } from "@/domain/catalog";
+import type { CategoryId, WorkshopConfig } from "@/domain/types";
+
+export function CategoryFilters({ config, active, onChange }: { config: WorkshopConfig; active: CategoryId | "all"; onChange: (id: CategoryId | "all") => void }) {
+  const filters = [{ id: "all", name: "Todas" }, ...orderedCategories(config)];
+  return (
+    <div className="flex flex-wrap gap-2" aria-label="Filtrar por categoría">
+      {filters.map((filter) => (
+        <button
+          key={filter.id}
+          type="button"
+          aria-pressed={active === filter.id}
+          onClick={() => onChange(filter.id)}
+          className="min-h-11 rounded-full border border-slate-300 bg-white px-4 py-2 font-bold text-slate-700 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-blue-600 aria-pressed:border-blue-700 aria-pressed:bg-blue-700 aria-pressed:text-white"
+        >
+          {filter.name}
+        </button>
+      ))}
+    </div>
+  );
+}
