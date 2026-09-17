@@ -3,11 +3,22 @@ import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { CategoryFilters } from "@/components/category-filters";
 import { CardTile } from "@/components/card-tile";
-import { PromptArea } from "@/components/prompt-area";
 import { ResetConfirm } from "@/components/reset-confirm";
 import { PhaseExplorer } from "@/components/phase-explorer";
+import { WorkshopEmail } from "@/components/workshop-email";
 import { WorkshopProvider } from "@/context/workshop-context";
 import { workshopConfig } from "@/config/workshop";
+import { createEmptySelections, selectCard } from "@/domain/selections";
+import type { SelectionsByPhase } from "@/domain/types";
+
+function completeSelections(): SelectionsByPhase {
+  let selections = createEmptySelections(workshopConfig);
+  for (const phase of workshopConfig.phases) {
+    const cards = workshopConfig.cards.filter((card) => card.phaseId === phase.id).slice(0, workshopConfig.maxSelectionsPerPhase);
+    for (const card of cards) selections = selectCard(workshopConfig, selections, phase.id, card.id);
+  }
+  return selections;
+}
 
 afterEach(() => {
   cleanup();
@@ -54,27 +65,28 @@ describe("componentes principales", () => {
     expect(screen.getByText("0/3 tarjetas · mismo peso")).toBeInTheDocument();
   });
 
-  it("copia correctamente y anuncia éxito", async () => {
+  it("habilita el envío cuando el workshop está completo y hay nombre de equipo", async () => {
     const user = userEvent.setup();
-    const writeText = vi.fn().mockResolvedValue(undefined);
-    Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText } });
-    render(<PromptArea prompt="texto" />);
-    await user.click(screen.getByRole("button", { name: "Copiar prompt" }));
-    expect(writeText).toHaveBeenCalledWith("texto");
-    expect(await screen.findByText("Prompt copiado")).toBeInTheDocument();
+    render(<WorkshopEmail selections={completeSelections()} />);
+    const button = screen.getByRole("button", { name: "Enviar resultado por correo" });
+    expect(button).toBeDisabled();
+    await user.type(screen.getByLabelText("Nombre del equipo"), "Equipo Alfa");
+    expect(button).toBeEnabled();
   });
 
-  it("anuncia el error principal de portapapeles", async () => {
+  it("mantiene el envío deshabilitado sin nombre de equipo", async () => {
     const user = userEvent.setup();
-    Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText: vi.fn().mockRejectedValue(new Error("denied")) } });
-    render(<PromptArea prompt="texto" />);
-    await user.click(screen.getByRole("button", { name: "Copiar prompt" }));
-    expect(await screen.findByText(/No se pudo copiar automáticamente/)).toBeInTheDocument();
+    render(<WorkshopEmail selections={completeSelections()} />);
+    const input = screen.getByLabelText("Nombre del equipo");
+    await user.type(input, "   ");
+    expect(screen.getByRole("button", { name: "Enviar resultado por correo" })).toBeDisabled();
   });
 
-  it("mantiene copiar deshabilitado en estado incompleto", () => {
-    render(<PromptArea prompt={null} />);
-    expect(screen.getByRole("button", { name: "Copiar prompt" })).toBeDisabled();
+  it("mantiene el envío deshabilitado si faltan selecciones", async () => {
+    const user = userEvent.setup();
+    render(<WorkshopEmail selections={createEmptySelections(workshopConfig)} />);
+    await user.type(screen.getByLabelText("Nombre del equipo"), "Equipo Alfa");
+    expect(screen.getByRole("button", { name: "Enviar resultado por correo" })).toBeDisabled();
   });
 
   it("confirma y permite cancelar un reinicio", async () => {

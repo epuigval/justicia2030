@@ -31,7 +31,7 @@ export function TeamSummary() {
           })}
         </div>
       </section>
-      <section className="mt-8 rounded-3xl bg-gradient-to-r from-blue-950 to-violet-800 p-7 text-white sm:p-9"><p className="text-sm font-black uppercase tracking-widest text-blue-200">Resultado</p><h2 className="mt-2 text-3xl font-black">Construye tu Justicia 2030</h2><p className="mt-3 max-w-2xl leading-7 text-blue-50">Consulta el progreso en cualquier momento. El prompt se activará al completar todas las fases.</p><Link href="/team/justicia-2030" className="mt-5 inline-flex min-h-11 items-center rounded-lg bg-white px-5 font-black text-blue-950 focus-visible:outline-3 focus-visible:outline-offset-3">Ir a Justicia 2030</Link></section>
+      <section className="mt-8 rounded-3xl bg-gradient-to-r from-blue-950 to-violet-800 p-7 text-white sm:p-9"><p className="text-sm font-black uppercase tracking-widest text-blue-200">Resultado</p><h2 className="mt-2 text-3xl font-black">Construye tu Justicia 2030</h2><p className="mt-3 max-w-2xl leading-7 text-blue-50">Consulta el progreso en cualquier momento. Podrás enviar el resultado por correo al completar todas las fases.</p><Link href="/team/justicia-2030" className="mt-5 inline-flex min-h-11 items-center rounded-lg bg-white px-5 font-black text-blue-950 focus-visible:outline-3 focus-visible:outline-offset-3">Ir a Justicia 2030</Link></section>
     </main>
   );
 }
