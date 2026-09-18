@@ -15,10 +15,10 @@ export function canonicalizeSelections(config: WorkshopConfig, selections: Selec
   );
 }
 
-export function selectCard(config: WorkshopConfig, selections: SelectionsByPhase, phaseId: PhaseId, cardId: CardId): SelectionsByPhase {
+export function selectCard(config: WorkshopConfig, selections: SelectionsByPhase, phaseId: PhaseId, cardId: CardId, limit: number | null = config.maxSelectionsPerPhase): SelectionsByPhase {
   const card = config.cards.find((item) => item.id === cardId);
   const current = selections[phaseId] ?? [];
-  if (!card || card.phaseId !== phaseId || current.includes(cardId) || current.length >= config.maxSelectionsPerPhase) return selections;
+  if (!card || card.phaseId !== phaseId || current.includes(cardId) || (limit !== null && current.length >= limit)) return selections;
   return canonicalizeSelections(config, { ...selections, [phaseId]: [...current, cardId] });
 }
 
@@ -28,10 +28,10 @@ export function deselectCard(config: WorkshopConfig, selections: SelectionsByPha
   return canonicalizeSelections(config, { ...selections, [phaseId]: current.filter((id) => id !== cardId) });
 }
 
-export function toggleCard(config: WorkshopConfig, selections: SelectionsByPhase, phaseId: PhaseId, cardId: CardId): SelectionsByPhase {
+export function toggleCard(config: WorkshopConfig, selections: SelectionsByPhase, phaseId: PhaseId, cardId: CardId, limit: number | null = config.maxSelectionsPerPhase): SelectionsByPhase {
   return (selections[phaseId] ?? []).includes(cardId)
     ? deselectCard(config, selections, phaseId, cardId)
-    : selectCard(config, selections, phaseId, cardId);
+    : selectCard(config, selections, phaseId, cardId, limit);
 }
 
 export function totalSelected(selections: SelectionsByPhase): number {

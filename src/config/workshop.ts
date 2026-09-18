@@ -295,6 +295,12 @@ export const workshopConfig: WorkshopConfig = {
   title: "Justicia 2030",
   intro: "Explora las etapas del workshop, debate las propuestas y selecciona tres tarjetas por etapa para construir una visión compartida de la Justicia 2030.",
   maxSelectionsPerPhase: 3,
+  collectives: [
+    { id: "colectivo-a", name: "Colectivo A", description: "Una mirada centrada en las personas y en el acceso claro a la justicia." },
+    { id: "colectivo-b", name: "Colectivo B", description: "Una mirada que conecta equipos, conocimiento y servicios públicos." },
+    { id: "colectivo-c", name: "Colectivo C", description: "Una mirada orientada a transformar procesos con datos y tecnología." },
+    { id: "colectivo-d", name: "Colectivo D", description: "Una mirada que equilibra innovación, garantías y confianza." },
+  ],
   phases: [
     { id: "justicia-actual", name: "Justicia Actual", shortName: "Actual", description: "Comprender y mejorar la situación de partida.", order: 1, accent: "orange" },
     { id: "justicia-conectada", name: "Justicia Conectada", shortName: "Conectada", description: "Conectar capacidades, servicios y conocimiento.", order: 2, accent: "green" },

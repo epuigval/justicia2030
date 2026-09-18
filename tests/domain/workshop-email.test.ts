@@ -1,48 +1,32 @@
 import { describe, expect, it } from "vitest";
 import { workshopConfig } from "@/config/workshop";
-import { createEmptySelections, selectCard } from "@/domain/selections";
-import { createWorkshopEmail } from "@/domain/workshop-email";
-import type { SelectionsByPhase } from "@/domain/types";
+import { createPhaseSelectionEmail } from "@/domain/workshop-email";
 
-function completeSelections(reverse = false): SelectionsByPhase {
-  let selections = createEmptySelections(workshopConfig);
-  for (const phase of workshopConfig.phases) {
-    const cards = workshopConfig.cards.filter((card) => card.phaseId === phase.id).slice(0, workshopConfig.maxSelectionsPerPhase);
-    for (const card of reverse ? [...cards].reverse() : cards) {
-      selections = selectCard(workshopConfig, selections, phase.id, card.id);
-    }
-  }
-  return selections;
-}
+describe("correo de selección parcial", () => {
+  const collective = workshopConfig.collectives[0];
+  const phase = workshopConfig.phases[0];
+  const cards = workshopConfig.cards.filter((card) => card.phaseId === phase.id);
 
-describe("correo de resultados del workshop", () => {
-  it("no genera un correo sin nombre o con selecciones incompletas", () => {
-    expect(createWorkshopEmail(workshopConfig, completeSelections(), "   ")).toBeNull();
-    expect(createWorkshopEmail(workshopConfig, createEmptySelections(workshopConfig), "Equipo Alfa")).toBeNull();
+  it("no genera un correo sin tarjetas seleccionadas", () => {
+    expect(createPhaseSelectionEmail(workshopConfig, [], collective, phase)).toBeNull();
   });
 
-  it("genera el asunto y el encabezado solicitados", () => {
-    const email = createWorkshopEmail(workshopConfig, completeSelections(), " Equipo Alfa ")!;
-    expect(email.subject).toBe("Equipo Alfa - Resultados Workshop Justicia 2030");
-    expect(email.body).toMatch(/^Nombre equipo: Equipo Alfa\n\nTarjetas seleccionadas:/);
+  it("incluye el grupo y la fase en el asunto", () => {
+    const email = createPhaseSelectionEmail(workshopConfig, [cards[0].id], collective, phase)!;
+    expect(email.subject).toBe(`${collective.name} - ${phase.name}`);
+    expect(email.body).toContain(`Grupo: ${collective.name}\nFase: ${phase.name}`);
   });
 
-  it("agrupa tres títulos bajo cada fase y respeta el orden del catálogo", () => {
-    const email = createWorkshopEmail(workshopConfig, completeSelections(true), "Equipo Alfa")!;
-    const phasePositions = workshopConfig.phases.map((phase) => email.body.indexOf(`Fase ${phase.order} - ${phase.name}:`));
-    expect(phasePositions).toEqual([...phasePositions].sort((left, right) => left - right));
-    for (const phase of workshopConfig.phases) {
-      const selectedTitles = workshopConfig.cards
-        .filter((card) => card.phaseId === phase.id)
-        .slice(0, workshopConfig.maxSelectionsPerPhase)
-        .map((card) => `- ${card.title}`);
-      for (const title of selectedTitles) expect(email.body).toContain(title);
-    }
-    expect(email.body.match(/^- /gm)).toHaveLength(9);
+  it("incluye solo los títulos seleccionados en orden de catálogo", () => {
+    const email = createPhaseSelectionEmail(workshopConfig, [cards[2].id, cards[0].id], collective, phase)!;
+    expect(email.body).toContain(`- ${cards[0].title}`);
+    expect(email.body).toContain(`- ${cards[2].title}`);
+    expect(email.body.indexOf(cards[0].title)).toBeLessThan(email.body.indexOf(cards[2].title));
+    expect(email.body).not.toContain(cards[1].title);
   });
 
   it("codifica asunto y cuerpo en un enlace mailto", () => {
-    const email = createWorkshopEmail(workshopConfig, completeSelections(), "Equipo Ágil")!;
+    const email = createPhaseSelectionEmail(workshopConfig, [cards[0].id], collective, phase)!;
     const query = new URLSearchParams(email.mailto.slice("mailto:?".length));
     expect(query.get("subject")).toBe(email.subject);
     expect(query.get("body")).toBe(email.body);

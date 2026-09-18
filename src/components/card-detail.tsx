@@ -7,10 +7,10 @@ import { getCategory, getPhase } from "@/domain/catalog";
 import type { WorkshopCard } from "@/domain/types";
 
 export function CardDetail({ card, backHref, onBack }: { card: WorkshopCard; backHref?: string; onBack?: () => void }) {
-  const { selectionsByPhase, toggle } = useWorkshop();
+  const { scope, selectionsByPhase, toggle } = useWorkshop();
   const selectedIds = selectionsByPhase[card.phaseId] ?? [];
   const selected = selectedIds.includes(card.id);
-  const disabled = !selected && selectedIds.length >= workshopConfig.maxSelectionsPerPhase;
+  const disabled = scope === "team" && !selected && selectedIds.length >= workshopConfig.maxSelectionsPerPhase;
   const phase = getPhase(workshopConfig, card.phaseId);
   const category = getCategory(workshopConfig, card.categoryId);
 

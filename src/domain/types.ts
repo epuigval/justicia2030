@@ -17,6 +17,12 @@ export interface WorkshopCategory {
   order: number;
 }
 
+export interface WorkshopCollective {
+  id: string;
+  name: string;
+  description: string;
+}
+
 export interface WorkshopCard {
   id: CardId;
   phaseId: PhaseId;
@@ -34,6 +40,7 @@ export interface WorkshopConfig {
   title: string;
   intro: string;
   maxSelectionsPerPhase: number;
+  collectives: WorkshopCollective[];
   phases: WorkshopPhase[];
   categories: WorkshopCategory[];
   cards: WorkshopCard[];
@@ -41,9 +48,20 @@ export interface WorkshopConfig {
 
 export type SelectionsByPhase = Record<PhaseId, CardId[]>;
 
+export interface WorkshopSessionState {
+  selectionsByPhase: SelectionsByPhase;
+  collectiveId: string | null;
+}
+
 export interface PersistedWorkshopStateV1 {
   schemaVersion: 1;
   selectionsByPhase: SelectionsByPhase;
+}
+
+export interface PersistedWorkshopStateV2 {
+  schemaVersion: 2;
+  selectionsByPhase: SelectionsByPhase;
+  collectiveId: string | null;
 }
 
 export type WorkshopScope = "team" | "facilitator";

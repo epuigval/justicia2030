@@ -19,6 +19,12 @@ describe("reglas de selección", () => {
     expect(state[phase.id]).not.toContain(phaseCards[3].id);
   });
 
+  it("permite desactivar el límite para el dinamizador", () => {
+    let state = createEmptySelections(workshopConfig);
+    for (const card of phaseCards) state = selectCard(workshopConfig, state, phase.id, card.id, null);
+    expect(state[phase.id]).toHaveLength(phaseCards.length);
+  });
+
   it("no crea duplicados", () => {
     let state = createEmptySelections(workshopConfig);
     state = selectCard(workshopConfig, state, phase.id, phaseCards[0].id);

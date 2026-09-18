@@ -9,12 +9,14 @@ import { createStorageAdapter } from "@/persistence/storage";
 interface WorkshopState {
   hydrated: boolean;
   selectionsByPhase: SelectionsByPhase;
+  collectiveId: string | null;
   storageNotice: string | null;
 }
 
 type Action =
-  | { type: "hydrate"; selections: SelectionsByPhase; notice: string | null }
-  | { type: "toggle"; phaseId: PhaseId; cardId: CardId }
+  | { type: "hydrate"; selections: SelectionsByPhase; collectiveId: string | null; notice: string | null }
+  | { type: "toggle"; phaseId: PhaseId; cardId: CardId; unlimited: boolean }
+  | { type: "select-collective"; collectiveId: string }
   | { type: "reset"; notice: string | null }
   | { type: "storage-error"; notice: string }
   | { type: "dismiss-notice" };
@@ -22,11 +24,13 @@ type Action =
 function reducer(state: WorkshopState, action: Action): WorkshopState {
   switch (action.type) {
     case "hydrate":
-      return { hydrated: true, selectionsByPhase: action.selections, storageNotice: action.notice };
+      return { hydrated: true, selectionsByPhase: action.selections, collectiveId: action.collectiveId, storageNotice: action.notice };
     case "toggle":
-      return { ...state, selectionsByPhase: toggleCard(workshopConfig, state.selectionsByPhase, action.phaseId, action.cardId) };
+      return { ...state, selectionsByPhase: toggleCard(workshopConfig, state.selectionsByPhase, action.phaseId, action.cardId, action.unlimited ? null : workshopConfig.maxSelectionsPerPhase) };
+    case "select-collective":
+      return { ...state, collectiveId: action.collectiveId };
     case "reset":
-      return { ...state, selectionsByPhase: createEmptySelections(workshopConfig), storageNotice: action.notice };
+      return { ...state, selectionsByPhase: createEmptySelections(workshopConfig), collectiveId: null, storageNotice: action.notice };
     case "storage-error":
       return { ...state, storageNotice: action.notice };
     case "dismiss-notice":
@@ -37,6 +41,7 @@ function reducer(state: WorkshopState, action: Action): WorkshopState {
 interface WorkshopContextValue extends WorkshopState {
   scope: WorkshopScope;
   toggle: (phaseId: PhaseId, cardId: CardId) => void;
+  selectCollective: (collectiveId: string) => void;
   reset: () => void;
   dismissNotice: () => void;
 }
@@ -47,13 +52,14 @@ export function WorkshopProvider({ scope, children }: { scope: WorkshopScope; ch
   const [state, dispatch] = useReducer(reducer, {
     hydrated: false,
     selectionsByPhase: createEmptySelections(workshopConfig),
+    collectiveId: null,
     storageNotice: null,
   });
   const skipNextWrite = useRef(false);
 
   useEffect(() => {
     const result = createStorageAdapter(window.localStorage, storageKeys[scope]).read(workshopConfig);
-    dispatch({ type: "hydrate", selections: result.value, notice: result.ok ? null : result.message });
+    dispatch({ type: "hydrate", selections: result.value.selectionsByPhase, collectiveId: result.value.collectiveId, notice: result.ok ? null : result.message });
   }, [scope]);
 
   useEffect(() => {
@@ -62,9 +68,9 @@ export function WorkshopProvider({ scope, children }: { scope: WorkshopScope; ch
       skipNextWrite.current = false;
       return;
     }
-    const result = createStorageAdapter(window.localStorage, storageKeys[scope]).write(state.selectionsByPhase);
+    const result = createStorageAdapter(window.localStorage, storageKeys[scope]).write({ selectionsByPhase: state.selectionsByPhase, collectiveId: state.collectiveId });
     if (!result.ok) dispatch({ type: "storage-error", notice: result.message });
-  }, [scope, state.hydrated, state.selectionsByPhase]);
+  }, [scope, state.collectiveId, state.hydrated, state.selectionsByPhase]);
 
   const reset = useCallback(() => {
     const result = createStorageAdapter(window.localStorage, storageKeys[scope]).remove();
@@ -76,7 +82,8 @@ export function WorkshopProvider({ scope, children }: { scope: WorkshopScope; ch
     () => ({
       ...state,
       scope,
-      toggle: (phaseId, cardId) => dispatch({ type: "toggle", phaseId, cardId }),
+      toggle: (phaseId, cardId) => dispatch({ type: "toggle", phaseId, cardId, unlimited: scope === "facilitator" }),
+      selectCollective: (collectiveId) => dispatch({ type: "select-collective", collectiveId }),
       reset,
       dismissNotice: () => dispatch({ type: "dismiss-notice" }),
     }),

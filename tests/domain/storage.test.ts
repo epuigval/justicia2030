@@ -10,8 +10,9 @@ describe("persistencia básica V1", () => {
     const state = createEmptySelections(workshopConfig);
     state[workshopConfig.phases[0].id] = [workshopConfig.cards[0].id];
     const adapter = createStorageAdapter(storage, storageKeys.team);
-    expect(adapter.write(state).ok).toBe(true);
-    expect(adapter.read(workshopConfig)).toEqual({ ok: true, value: state });
+    const session = { selectionsByPhase: state, collectiveId: workshopConfig.collectives[0].id };
+    expect(adapter.write(session).ok).toBe(true);
+    expect(adapter.read(workshopConfig)).toEqual({ ok: true, value: session });
   });
 
   it("usa claves separadas", () => expect(storageKeys.team).not.toBe(storageKeys.facilitator));
@@ -37,7 +38,7 @@ describe("persistencia básica V1", () => {
   it("descarta JSON ilegible sin lanzar", () => {
     const result = parsePersistedState("{no", workshopConfig);
     expect(result.ok).toBe(false);
-    expect(result.value).toEqual(createEmptySelections(workshopConfig));
+    expect(result.value).toEqual({ selectionsByPhase: createEmptySelections(workshopConfig), collectiveId: null });
   });
 
   it("descarta una forma distinta de V1", () => expect(parsePersistedState(JSON.stringify({ schemaVersion: 2 }), workshopConfig).ok).toBe(false));
@@ -49,7 +50,7 @@ describe("persistencia básica V1", () => {
 
   it("persiste únicamente versión y selecciones", () => {
     localStorage.clear();
-    createStorageAdapter(localStorage, storageKeys.team).write(createEmptySelections(workshopConfig));
-    expect(Object.keys(JSON.parse(localStorage.getItem(storageKeys.team)!))).toEqual(["schemaVersion", "selectionsByPhase"]);
+    createStorageAdapter(localStorage, storageKeys.team).write({ selectionsByPhase: createEmptySelections(workshopConfig), collectiveId: null });
+    expect(Object.keys(JSON.parse(localStorage.getItem(storageKeys.team)!))).toEqual(["schemaVersion", "selectionsByPhase", "collectiveId"]);
   });
 });

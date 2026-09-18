@@ -16,7 +16,7 @@ export function HomeActions() {
   useEffect(() => {
     const result = createStorageAdapter(window.localStorage, storageKeys.team).read(workshopConfig);
     const timer = window.setTimeout(() => {
-      setSession({ ready: true, hasSelections: result.ok && totalSelected(result.value) > 0 });
+      setSession({ ready: true, hasSelections: result.ok && (result.value.collectiveId !== null || totalSelected(result.value.selectionsByPhase) > 0) });
       setNotice(result.ok ? "" : result.message);
     }, 0);
     return () => window.clearTimeout(timer);

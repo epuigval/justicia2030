@@ -39,6 +39,7 @@ describe("arquitectura data-driven", () => {
     title: "Prueba",
     intro: "Configuración distinta",
     maxSelectionsPerPhase: 2,
+    collectives: [],
     phases: [
       { id: "b", name: "B", shortName: "B", description: "Segunda", order: 2, accent: "blue" },
       { id: "a", name: "A", shortName: "A", description: "Primera", order: 1, accent: "green" },

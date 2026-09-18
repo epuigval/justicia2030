@@ -15,12 +15,12 @@ export function PhaseExplorer({ phaseId, detailHref, onOpenDetail }: {
   onOpenDetail?: (card: WorkshopCard) => void;
 }) {
   const [activeFilter, setActiveFilter] = useState<CategoryId | "all">("all");
-  const { selectionsByPhase, toggle } = useWorkshop();
+  const { scope, selectionsByPhase, toggle } = useWorkshop();
   const phase = getPhase(workshopConfig, phaseId);
   if (!phase) return null;
   const selectedIds = selectionsByPhase[phaseId] ?? [];
   const cards = filterCards(workshopConfig, phaseId, activeFilter);
-  const atLimit = selectedIds.length >= workshopConfig.maxSelectionsPerPhase;
+  const atLimit = scope === "team" && selectedIds.length >= workshopConfig.maxSelectionsPerPhase;
 
   return (
     <section aria-labelledby={`phase-${phaseId}`}>
@@ -54,7 +54,7 @@ export function PhaseExplorer({ phaseId, detailHref, onOpenDetail }: {
             </div>
           )}
         </div>
-        <SelectionTray config={workshopConfig} phaseId={phaseId} selectedIds={selectedIds} onRemove={(cardId) => toggle(phaseId, cardId)} />
+        <SelectionTray config={workshopConfig} phaseId={phaseId} selectedIds={selectedIds} unlimited={scope === "facilitator"} onRemove={(cardId) => toggle(phaseId, cardId)} />
       </div>
     </section>
   );

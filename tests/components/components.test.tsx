@@ -2,23 +2,13 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { CategoryFilters } from "@/components/category-filters";
+import { CardDetailModal } from "@/components/card-detail-modal";
 import { CardTile } from "@/components/card-tile";
+import { CollectiveSelector } from "@/components/collective-selector";
 import { ResetConfirm } from "@/components/reset-confirm";
 import { PhaseExplorer } from "@/components/phase-explorer";
-import { WorkshopEmail } from "@/components/workshop-email";
 import { WorkshopProvider } from "@/context/workshop-context";
 import { workshopConfig } from "@/config/workshop";
-import { createEmptySelections, selectCard } from "@/domain/selections";
-import type { SelectionsByPhase } from "@/domain/types";
-
-function completeSelections(): SelectionsByPhase {
-  let selections = createEmptySelections(workshopConfig);
-  for (const phase of workshopConfig.phases) {
-    const cards = workshopConfig.cards.filter((card) => card.phaseId === phase.id).slice(0, workshopConfig.maxSelectionsPerPhase);
-    for (const card of cards) selections = selectCard(workshopConfig, selections, phase.id, card.id);
-  }
-  return selections;
-}
 
 afterEach(() => {
   cleanup();
@@ -65,28 +55,36 @@ describe("componentes principales", () => {
     expect(screen.getByText("0/3 tarjetas · mismo peso")).toBeInTheDocument();
   });
 
-  it("habilita el envío cuando el workshop está completo y hay nombre de equipo", async () => {
+  it("obliga a elegir un colectivo y muestra su descripción", async () => {
     const user = userEvent.setup();
-    render(<WorkshopEmail selections={completeSelections()} />);
-    const button = screen.getByRole("button", { name: "Enviar resultado por correo" });
-    expect(button).toBeDisabled();
-    await user.type(screen.getByLabelText("Nombre del equipo"), "Equipo Alfa");
-    expect(button).toBeEnabled();
+    render(<WorkshopProvider scope="team"><CollectiveSelector /></WorkshopProvider>);
+    await screen.findByLabelText("Equipo o colectivo");
+    const start = screen.getByRole("button", { name: "Comenzar partida" });
+    expect(start).toBeDisabled();
+    const collective = workshopConfig.collectives[0];
+    await user.selectOptions(screen.getByLabelText("Equipo o colectivo"), collective.id);
+    expect(screen.getByText(collective.description)).toBeInTheDocument();
+    expect(start).toBeEnabled();
   });
 
-  it("mantiene el envío deshabilitado sin nombre de equipo", async () => {
+  it("muestra el detalle como diálogo y permite cerrarlo con Escape", async () => {
     const user = userEvent.setup();
-    render(<WorkshopEmail selections={completeSelections()} />);
-    const input = screen.getByLabelText("Nombre del equipo");
-    await user.type(input, "   ");
-    expect(screen.getByRole("button", { name: "Enviar resultado por correo" })).toBeDisabled();
+    const onClose = vi.fn();
+    render(<WorkshopProvider scope="team"><CardDetailModal card={workshopConfig.cards[0]} onClose={onClose} /></WorkshopProvider>);
+    expect(screen.getByRole("dialog", { name: `Detalle de ${workshopConfig.cards[0].title}` })).toBeInTheDocument();
+    await user.keyboard("{Escape}");
+    expect(onClose).toHaveBeenCalledOnce();
   });
 
-  it("mantiene el envío deshabilitado si faltan selecciones", async () => {
+  it("permite al dinamizador seleccionar más de tres tarjetas", async () => {
     const user = userEvent.setup();
-    render(<WorkshopEmail selections={createEmptySelections(workshopConfig)} />);
-    await user.type(screen.getByLabelText("Nombre del equipo"), "Equipo Alfa");
-    expect(screen.getByRole("button", { name: "Enviar resultado por correo" })).toBeDisabled();
+    const phase = workshopConfig.phases[0];
+    render(<WorkshopProvider scope="facilitator"><PhaseExplorer phaseId={phase.id} onOpenDetail={vi.fn()} /></WorkshopProvider>);
+    await screen.findByRole("heading", { name: phase.name });
+    const selectButtons = screen.getAllByRole("button", { name: "Seleccionar tarjeta" });
+    for (const button of selectButtons.slice(0, 4)) await user.click(button);
+    expect(screen.getByText("4 tarjetas · mismo peso")).toBeInTheDocument();
+    expect(selectButtons[3]).not.toBeDisabled();
   });
 
   it("confirma y permite cancelar un reinicio", async () => {

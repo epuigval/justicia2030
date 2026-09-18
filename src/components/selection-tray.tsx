@@ -1,11 +1,11 @@
 import { getCard } from "@/domain/catalog";
 import type { CardId, PhaseId, WorkshopConfig } from "@/domain/types";
 
-export function SelectionTray({ config, phaseId, selectedIds, onRemove }: { config: WorkshopConfig; phaseId: PhaseId; selectedIds: CardId[]; onRemove: (cardId: CardId) => void }) {
+export function SelectionTray({ config, phaseId, selectedIds, unlimited = false, onRemove }: { config: WorkshopConfig; phaseId: PhaseId; selectedIds: CardId[]; unlimited?: boolean; onRemove: (cardId: CardId) => void }) {
   return (
     <aside className="rounded-2xl border border-blue-200 bg-blue-50 p-5 lg:sticky lg:top-5" aria-label="Selecciones de la fase">
       <h2 className="text-lg font-black text-blue-950">Tus selecciones</h2>
-      <p className="mt-1 text-sm font-semibold text-blue-800">{selectedIds.length}/{config.maxSelectionsPerPhase} tarjetas · mismo peso</p>
+      <p className="mt-1 text-sm font-semibold text-blue-800">{selectedIds.length}{unlimited ? "" : `/${config.maxSelectionsPerPhase}`} tarjetas · mismo peso</p>
       {selectedIds.length === 0 ? <p className="mt-4 text-slate-600">Aún no has seleccionado ninguna tarjeta.</p> : (
         <ul className="mt-4 space-y-3">
           {selectedIds.map((id) => {

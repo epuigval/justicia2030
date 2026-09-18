@@ -1,6 +1,5 @@
-import { orderedCards, orderedPhases } from "./catalog";
-import { isComplete } from "./selections";
-import type { SelectionsByPhase, WorkshopConfig } from "./types";
+import { orderedCards } from "./catalog";
+import type { CardId, WorkshopCollective, WorkshopConfig, WorkshopPhase } from "./types";
 
 export interface WorkshopEmail {
   subject: string;
@@ -8,27 +7,18 @@ export interface WorkshopEmail {
   mailto: string;
 }
 
-export function createWorkshopEmail(
+export function createPhaseSelectionEmail(
   config: WorkshopConfig,
-  selections: SelectionsByPhase,
-  teamName: string,
+  selectedIds: CardId[],
+  collective: WorkshopCollective,
+  phase: WorkshopPhase,
 ): WorkshopEmail | null {
-  const normalizedTeamName = teamName.trim();
-  if (!normalizedTeamName || !isComplete(config, selections)) return null;
+  const selected = new Set(selectedIds);
+  const titles = orderedCards(config).filter((card) => card.phaseId === phase.id && selected.has(card.id)).map((card) => card.title);
+  if (titles.length === 0) return null;
 
-  const subject = `${normalizedTeamName} - Resultados Workshop Justicia 2030`;
-  const lines = [`Nombre equipo: ${normalizedTeamName}`, "", "Tarjetas seleccionadas:"];
-
-  for (const phase of orderedPhases(config)) {
-    lines.push(`Fase ${phase.order} - ${phase.name}:`);
-    const selectedIds = new Set(selections[phase.id] ?? []);
-    for (const card of orderedCards(config)) {
-      if (card.phaseId === phase.id && selectedIds.has(card.id)) lines.push(`- ${card.title}`);
-    }
-    lines.push("");
-  }
-
-  const body = lines.join("\n").trimEnd();
+  const subject = `${collective.name} - ${phase.name}`;
+  const body = [`Grupo: ${collective.name}`, `Fase: ${phase.name}`, "", "Tarjetas seleccionadas:", ...titles.map((title) => `- ${title}`)].join("\n");
   return {
     subject,
     body,
