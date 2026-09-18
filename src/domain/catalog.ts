@@ -21,6 +21,11 @@ export function validateCatalog(config: WorkshopConfig): string[] {
     if (!nonEmpty(category.id) || !nonEmpty(category.name)) errors.push(`Categoría incompleta: ${category.id || "sin ID"}.`);
     if (category.id === "all" || category.id === "todas") errors.push("Todas no puede ser una categoría.");
   }
+  for (const collective of config.collectives) {
+    if (!nonEmpty(collective.id) || !nonEmpty(collective.name) || !nonEmpty(collective.description) || collective.prioritizationCriteria.some((criterion) => !nonEmpty(criterion))) {
+      errors.push(`Colectivo incompleto: ${collective.id || "sin ID"}.`);
+    }
+  }
   for (const card of config.cards) {
     const fields = [card.id, card.title, card.shortDescription, card.challenge, card.solution, card.debateQuestion];
     if (fields.some((field) => !nonEmpty(field)) || card.benefits.length === 0 || card.benefits.some((benefit) => !nonEmpty(benefit))) {

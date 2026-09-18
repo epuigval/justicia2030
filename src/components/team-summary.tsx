@@ -25,7 +25,7 @@ export function TeamSummary() {
         <ResetConfirm triggerLabel="Comenzar nueva partida" message="Se eliminarán las selecciones del equipo guardadas en este navegador. No afectará al dinamizador ni a otros dispositivos. Esta acción no se puede deshacer." confirmLabel="Borrar y empezar" onConfirm={() => { reset(); router.push("/team"); }} />
       </div>
       <section className="mt-8 flex items-center gap-5 border-y border-slate-200 py-5" aria-label="Colectivo seleccionado">
-        <div><p className="text-sm font-black uppercase tracking-wide text-blue-700">{collective.name}</p><p className="mt-1 text-slate-600">{collective.description}</p></div>
+        <div><p className="text-sm font-black uppercase tracking-wide text-blue-700">{collective.name}</p><p className="mt-1 text-slate-600">{collective.description}</p><p className="mt-2 text-sm font-semibold text-slate-500">Criterios: {collective.prioritizationCriteria.join(" · ")}</p></div>
       </section>
       <section className="mt-8" aria-labelledby="phases-title">
         <h2 id="phases-title" className="text-2xl font-black text-blue-950">Fases del workshop</h2>

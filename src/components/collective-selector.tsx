@@ -24,7 +24,7 @@ export function CollectiveSelector() {
           <button type="button" disabled={!collective} onClick={() => collective && selectCollective(collective.id)} className="mt-6 min-h-12 rounded-lg bg-blue-700 px-6 font-black text-white focus-visible:outline-3 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-600">Comenzar partida</button>
         </div>
         <aside className="border-l-4 border-blue-700 pl-6" aria-live="polite">
-          {collective ? <><h2 className="text-xl font-black text-blue-950">{collective.name}</h2><p className="mt-2 leading-7 text-slate-600">{collective.description}</p></> : <p className="leading-7 text-slate-500">Selecciona un colectivo para consultar su descripción.</p>}
+          {collective ? <><h2 className="text-xl font-black text-blue-950">{collective.name}</h2><p className="mt-2 leading-7 text-slate-600">{collective.description}</p><h3 className="mt-5 font-black text-blue-950">Criterios de priorización</h3><ul className="mt-2 space-y-2 text-slate-600">{collective.prioritizationCriteria.map((criterion) => <li key={criterion}>• {criterion}</li>)}</ul></> : <p className="leading-7 text-slate-500">Selecciona un colectivo para consultar su descripción.</p>}
         </aside>
       </section>
     </main>

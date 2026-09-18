@@ -9,6 +9,7 @@ describe("fixture inicial", () => {
     expect(workshopConfig.phases).toHaveLength(3);
     expect(workshopConfig.categories).toHaveLength(4);
     expect(workshopConfig.cards).toHaveLength(24);
+    expect(workshopConfig.collectives).toHaveLength(5);
   });
 
   it.each(workshopConfig.phases)("contiene ocho tarjetas en $name", (phase) => {
@@ -28,6 +29,13 @@ describe("fixture inicial", () => {
       expect([card.title, card.shortDescription, card.challenge, card.solution, card.debateQuestion].every((value) => value.trim().length > 0)).toBe(true);
       expect(card.benefits.length).toBeGreaterThanOrEqual(2);
       expect(card.benefits.length).toBeLessThanOrEqual(4);
+    }
+  });
+
+  it("contiene la descripción y los criterios de cada perfil", () => {
+    for (const collective of workshopConfig.collectives) {
+      expect(collective.description.trim()).not.toBe("");
+      expect(collective.prioritizationCriteria).toHaveLength(4);
     }
   });
 

@@ -21,6 +21,7 @@ export interface WorkshopCollective {
   id: string;
   name: string;
   description: string;
+  prioritizationCriteria: string[];
 }
 
 export interface WorkshopCard {
