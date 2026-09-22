@@ -11,6 +11,7 @@ interface WorkshopState {
   hydrated: boolean;
   sessionId: string;
   selectionsByPhase: SelectionsByPhase;
+  sentSelectionKeys: string[];
   collectiveId: string | null;
   storageNotice: string | null;
 }
@@ -18,6 +19,7 @@ interface WorkshopState {
 type Action =
   | { type: "hydrate"; sessionId: string; selections: SelectionsByPhase; collectiveId: string | null; notice: string | null }
   | { type: "toggle"; phaseId: PhaseId; cardId: CardId; unlimited: boolean }
+  | { type: "mark-selection-sent"; key: string }
   | { type: "select-collective"; collectiveId: string }
   | { type: "reset"; notice: string | null }
   | { type: "storage-error"; notice: string }
@@ -26,13 +28,15 @@ type Action =
 function reducer(state: WorkshopState, action: Action): WorkshopState {
   switch (action.type) {
     case "hydrate":
-      return { hydrated: true, sessionId: action.sessionId, selectionsByPhase: action.selections, collectiveId: action.collectiveId, storageNotice: action.notice };
+      return { hydrated: true, sessionId: action.sessionId, selectionsByPhase: action.selections, sentSelectionKeys: [], collectiveId: action.collectiveId, storageNotice: action.notice };
     case "toggle":
       return { ...state, selectionsByPhase: toggleCard(workshopConfig, state.selectionsByPhase, action.phaseId, action.cardId, action.unlimited ? null : workshopConfig.maxSelectionsPerPhase) };
+    case "mark-selection-sent":
+      return state.sentSelectionKeys.includes(action.key) ? state : { ...state, sentSelectionKeys: [...state.sentSelectionKeys, action.key] };
     case "select-collective":
       return { ...state, collectiveId: action.collectiveId };
     case "reset":
-      return { ...state, sessionId: createSessionId(), selectionsByPhase: createEmptySelections(workshopConfig), collectiveId: null, storageNotice: action.notice };
+      return { ...state, sessionId: createSessionId(), selectionsByPhase: createEmptySelections(workshopConfig), sentSelectionKeys: [], collectiveId: null, storageNotice: action.notice };
     case "storage-error":
       return { ...state, storageNotice: action.notice };
     case "dismiss-notice":
@@ -43,6 +47,8 @@ function reducer(state: WorkshopState, action: Action): WorkshopState {
 interface WorkshopContextValue extends WorkshopState {
   scope: WorkshopScope;
   toggle: (phaseId: PhaseId, cardId: CardId) => void;
+  isSelectionSent: (phaseId: PhaseId, cardIds: CardId[]) => boolean;
+  markSelectionSent: (phaseId: PhaseId, cardIds: CardId[]) => void;
   selectCollective: (collectiveId: string) => void;
   reset: () => void;
   dismissNotice: () => void;
@@ -55,6 +61,7 @@ function createInitialState(): WorkshopState {
     hydrated: false,
     sessionId: createSessionId(),
     selectionsByPhase: createEmptySelections(workshopConfig),
+    sentSelectionKeys: [],
     collectiveId: null,
     storageNotice: null,
   };
@@ -83,14 +90,19 @@ export function WorkshopProvider({ scope, children }: { scope: WorkshopScope; ch
   }, [scope]);
 
   const value = useMemo<WorkshopContextValue>(
-    () => ({
-      ...state,
-      scope,
-      toggle: (phaseId, cardId) => dispatch({ type: "toggle", phaseId, cardId, unlimited: scope === "facilitator" }),
-      selectCollective: (collectiveId) => dispatch({ type: "select-collective", collectiveId }),
-      reset,
-      dismissNotice: () => dispatch({ type: "dismiss-notice" }),
-    }),
+    () => {
+      const selectionKey = (phaseId: PhaseId, cardIds: CardId[]) => [state.sessionId, state.collectiveId, phaseId, ...[...cardIds].sort()].join(":");
+      return {
+        ...state,
+        scope,
+        toggle: (phaseId, cardId) => dispatch({ type: "toggle", phaseId, cardId, unlimited: scope === "facilitator" }),
+        isSelectionSent: (phaseId, cardIds) => state.sentSelectionKeys.includes(selectionKey(phaseId, cardIds)),
+        markSelectionSent: (phaseId, cardIds) => dispatch({ type: "mark-selection-sent", key: selectionKey(phaseId, cardIds) }),
+        selectCollective: (collectiveId) => dispatch({ type: "select-collective", collectiveId }),
+        reset,
+        dismissNotice: () => dispatch({ type: "dismiss-notice" }),
+      };
+    },
     [reset, scope, state],
   );
 

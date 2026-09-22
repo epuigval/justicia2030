@@ -13,8 +13,9 @@ import { POST } from "@/app/api/send-phase-result/route";
 
 const SESSION_ID = "123e4567-e89b-42d3-a456-426614174000";
 const phase = workshopConfig.phases[0];
+const collective = workshopConfig.collectives[0];
 const cards = workshopConfig.cards.filter((card) => card.phaseId === phase.id).slice(0, 3);
-const validPayload = { sessionId: SESSION_ID, phaseId: phase.id, selectedCardIds: cards.map((card) => card.id) };
+const validPayload = { sessionId: SESSION_ID, phaseId: phase.id, collectiveId: collective.id, selectedCardIds: cards.map((card) => card.id) };
 
 function request(payload: unknown) {
   return new Request("http://localhost/api/send-phase-result", {
@@ -48,7 +49,8 @@ describe("POST /api/send-phase-result", () => {
         from: "Justicia 2030 <resultados@example.com>",
         to: ["uno@example.com", "dos@example.com"],
         replyTo: "respuesta@example.com",
-        subject: `Justicia 2030 · ${phase.name}`,
+        subject: `Justicia 2030 · ${collective.name} · ${phase.name}`,
+        text: expect.stringContaining(`Grupo:\n${collective.name}`),
       }),
       { idempotencyKey: expect.stringMatching(/^justicia2030-phase-result-[0-9a-f]{64}$/) },
     );
@@ -61,15 +63,14 @@ describe("POST /api/send-phase-result", () => {
       from: "ataque@example.com",
       subject: "Ataque",
       text: "Ataque",
-      collectiveId: "colectivo",
       profileId: "perfil",
     }));
     const [email] = sendMock.mock.calls[0];
     expect(email.to).toEqual(["uno@example.com", "dos@example.com"]);
     expect(email.from).toBe("Justicia 2030 <resultados@example.com>");
-    expect(email.subject).toBe(`Justicia 2030 · ${phase.name}`);
+    expect(email.subject).toBe(`Justicia 2030 · ${collective.name} · ${phase.name}`);
     expect(email.text).not.toContain("Ataque");
-    expect(email.text).not.toContain("colectivo");
+    expect(email.text).toContain(collective.name);
   });
 
   it("devuelve 400 y no envía ante payload inválido", async () => {

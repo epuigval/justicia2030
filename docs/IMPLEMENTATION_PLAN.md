@@ -87,7 +87,7 @@ La hidratación ocurre en `useEffect`. Otro efecto persiste solo cuando `hydrate
 
 ## 7. Backend de correo
 
-El cliente transmite solo `sessionId`, `phaseId` y `selectedCardIds`. El Route Handler valida el payload antes de leer la configuración. `src/server/phase-result-email.ts` parsea destinatarios separados por comas, añade `replyTo` únicamente cuando existe y crea `justicia2030-phase-result-{sha256}` a partir de sesión, fase e IDs canónicos.
+El cliente transmite solo `sessionId`, `phaseId`, `collectiveId` y `selectedCardIds`. El Route Handler valida el payload antes de leer la configuración y obtiene el nombre del colectivo desde el catálogo. `src/server/phase-result-email.ts` parsea destinatarios separados por comas, añade `replyTo` únicamente cuando existe y crea `justicia2030-phase-result-{sha256}` a partir de sesión, colectivo, fase e IDs canónicos.
 
 El SDK `resend@6.28.1` se instancia durante la petición con `RESEND_API_KEY`. Remitente y destinatarios son exclusivamente de servidor. El envío utiliza una sola llamada para todos los destinatarios y pasa la clave oficial de idempotencia como segundo argumento. Configuración ausente o fallo del proveedor producen un 500 genérico; el único log permitido es el literal `resend_send_failed`.
 

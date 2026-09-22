@@ -86,9 +86,9 @@ El prompt solo se genera cuando cada fase tiene exactamente el máximo configura
 
 ## Envío de resultados por fase
 
-Cuando una fase del equipo tiene exactamente tres tarjetas, su resumen muestra «Enviar resultados». El navegador envía únicamente `sessionId`, `phaseId` y `selectedCardIds` a `POST /api/send-phase-result`. El Route Handler valida los datos contra `workshopConfig`, ordena las tarjetas según el catálogo y construye en servidor un email de texto plano. Se envía un correo independiente por fase; no existe un correo final adicional.
+Cuando una fase del equipo tiene exactamente tres tarjetas, su resumen muestra «Enviar resultados». El navegador envía únicamente `sessionId`, `phaseId`, `collectiveId` y `selectedCardIds` a `POST /api/send-phase-result`. El Route Handler valida los datos contra `workshopConfig`, ordena las tarjetas según el catálogo y construye en servidor un email de texto plano. Se envía un correo independiente por fase; no existe un correo final adicional.
 
-Resend se usa solo en servidor. Remitente, destinatarios, asunto y texto nunca proceden del cliente. Una clave SHA-256 determinista basada en sesión, fase y selección canónica se entrega a Resend como `idempotencyKey`, evitando duplicados para la misma combinación. El colectivo se conserva en la experiencia, pero no se envía, no aparece en el email y no participa en la idempotencia.
+Resend se usa solo en servidor. Remitente, destinatarios, asunto, texto y nombre del colectivo nunca proceden directamente del cliente. Una clave SHA-256 determinista basada en sesión, colectivo, fase y selección canónica se entrega a Resend como `idempotencyKey`, evitando duplicados para la misma combinación. El colectivo validado aparece en el asunto y el cuerpo del email.
 
 ## Persistencia, continuación y reinicio
 

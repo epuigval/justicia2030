@@ -7,8 +7,9 @@ const SESSION_ID = "123e4567-e89b-42d3-a456-426614174000";
 
 describe("resultado de una fase", () => {
   const phase = workshopConfig.phases[0];
+  const collective = workshopConfig.collectives[0];
   const cards = workshopConfig.cards.filter((card) => card.phaseId === phase.id);
-  const validPayload = { sessionId: SESSION_ID, phaseId: phase.id, selectedCardIds: [cards[2].id, cards[0].id, cards[1].id] };
+  const validPayload = { sessionId: SESSION_ID, phaseId: phase.id, collectiveId: collective.id, selectedCardIds: [cards[2].id, cards[0].id, cards[1].id] };
 
   it("rechaza menos tarjetas que el máximo configurado", () => {
     expect(validatePhaseResultPayload(workshopConfig, { ...validPayload, selectedCardIds: validPayload.selectedCardIds.slice(0, 2) })).toBeNull();
@@ -35,10 +36,15 @@ describe("resultado de una fase", () => {
     expect(validatePhaseResultPayload(workshopConfig, { ...validPayload, selectedCardIds: "no-es-array" })).toBeNull();
   });
 
-  it("ignora colectivo, perfil y campos de email añadidos por el cliente", () => {
+  it("rechaza un colectivo ausente o desconocido", () => {
+    const withoutCollective = { sessionId: validPayload.sessionId, phaseId: validPayload.phaseId, selectedCardIds: validPayload.selectedCardIds };
+    expect(validatePhaseResultPayload(workshopConfig, withoutCollective)).toBeNull();
+    expect(validatePhaseResultPayload(workshopConfig, { ...validPayload, collectiveId: "colectivo-inyectado" })).toBeNull();
+  });
+
+  it("ignora perfil y campos de email añadidos por el cliente", () => {
     const result = validatePhaseResultPayload(workshopConfig, {
       ...validPayload,
-      collectiveId: "colectivo-inyectado",
       profileId: "perfil-inyectado",
       to: "ataque@example.com",
       from: "ataque@example.com",
@@ -46,7 +52,7 @@ describe("resultado de una fase", () => {
       text: "Contenido manipulado",
     });
     expect(result).not.toBeNull();
-    expect(result).not.toHaveProperty("collectiveId");
+    expect(result?.collective).toBe(collective);
     expect(result).not.toHaveProperty("profileId");
     expect(result).not.toHaveProperty("to");
   });
@@ -54,9 +60,12 @@ describe("resultado de una fase", () => {
   it("construye asunto y texto exactos desde el catálogo", () => {
     const result = validatePhaseResultPayload(workshopConfig, validPayload)!;
     const email = createPhaseResultEmail(result);
-    expect(email.subject).toBe(`Justicia 2030 · ${phase.name}`);
+    expect(email.subject).toBe(`Justicia 2030 · ${collective.name} · ${phase.name}`);
     expect(email.text).toBe([
       "JUSTICIA 2030",
+      "",
+      "Grupo:",
+      collective.name,
       "",
       "Fase:",
       phase.name,
@@ -74,18 +83,20 @@ describe("resultado de una fase", () => {
       expect(email.text).not.toContain(card.solution);
       for (const benefit of card.benefits) expect(email.text).not.toContain(benefit);
     }
-    expect(`${email.subject}\n${email.text}`).not.toContain(workshopConfig.collectives[0].name);
+    expect(`${email.subject}\n${email.text}`).toContain(collective.name);
   });
 });
 
 describe("idempotencia del resultado", () => {
   const firstPhase = workshopConfig.phases[0];
   const secondPhase = workshopConfig.phases[1];
+  const firstCollective = workshopConfig.collectives[0];
+  const secondCollective = workshopConfig.collectives[1];
   const firstCards = workshopConfig.cards.filter((card) => card.phaseId === firstPhase.id);
   const secondCards = workshopConfig.cards.filter((card) => card.phaseId === secondPhase.id);
 
   function result(sessionId: string, phaseId: string, selectedCardIds: string[], extra: Record<string, unknown> = {}) {
-    return validatePhaseResultPayload(workshopConfig, { sessionId, phaseId, selectedCardIds, ...extra })!;
+    return validatePhaseResultPayload(workshopConfig, { sessionId, phaseId, collectiveId: firstCollective.id, selectedCardIds, ...extra })!;
   }
 
   it("mantiene la clave para la misma selección en distinto orden", () => {
@@ -101,11 +112,11 @@ describe("idempotencia del resultado", () => {
     expect(createPhaseResultIdempotencyKey(result("123e4567-e89b-42d3-a456-426614174001", firstPhase.id, firstCards.slice(0, 3).map((card) => card.id)))).not.toBe(base);
   });
 
-  it("no incorpora el colectivo y nunca supera 256 caracteres", () => {
+  it("cambia al cambiar colectivo y nunca supera 256 caracteres", () => {
     const selectedCardIds = firstCards.slice(0, 3).map((card) => card.id);
-    const first = result(SESSION_ID, firstPhase.id, selectedCardIds, { collectiveId: "a" });
-    const second = result(SESSION_ID, firstPhase.id, selectedCardIds, { collectiveId: "b" });
-    expect(createPhaseResultIdempotencyKey(first)).toBe(createPhaseResultIdempotencyKey(second));
+    const first = result(SESSION_ID, firstPhase.id, selectedCardIds);
+    const second = result(SESSION_ID, firstPhase.id, selectedCardIds, { collectiveId: secondCollective.id });
+    expect(createPhaseResultIdempotencyKey(first)).not.toBe(createPhaseResultIdempotencyKey(second));
     expect(createPhaseResultIdempotencyKey(first).length).toBeLessThanOrEqual(256);
   });
 });

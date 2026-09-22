@@ -123,11 +123,11 @@ Los reinicios eliminan únicamente la clave del rol mediante `removeItem`, gener
 
 ## 10. Envío de resultados por correo
 
-El cliente llama a `POST /api/send-phase-result` únicamente con `sessionId`, `phaseId` y `selectedCardIds`. El servidor trata el payload como no confiable, exige un UUID válido, una fase configurada, exactamente `maxSelectionsPerPhase` IDs únicos y tarjetas existentes pertenecientes a esa fase. Fase, orden y títulos proceden siempre de `workshopConfig`.
+El cliente llama a `POST /api/send-phase-result` únicamente con `sessionId`, `phaseId`, `collectiveId` y `selectedCardIds`. El servidor trata el payload como no confiable, exige un UUID válido, una fase y un colectivo configurados, exactamente `maxSelectionsPerPhase` IDs únicos y tarjetas existentes pertenecientes a esa fase. Fase, colectivo, orden y títulos proceden siempre de `workshopConfig`.
 
-El email de texto plano usa el asunto `Justicia 2030 · {fase}` y contiene solo el nombre de fase y los tres títulos en orden canónico. No contiene IDs, datos ampliados de tarjeta, colectivo ni perfil. Remitente, destinatarios y `replyTo` proceden de variables de servidor.
+El email de texto plano usa el asunto `Justicia 2030 · {colectivo} · {fase}` y contiene el nombre del colectivo, el nombre de fase y los tres títulos en orden canónico. No contiene IDs, datos ampliados de tarjeta ni perfil. Remitente, destinatarios y `replyTo` proceden de variables de servidor.
 
-Resend recibe una `idempotencyKey` menor de 256 caracteres, derivada mediante SHA-256 de sesión, fase y selección canónica. La misma combinación no duplica el correo; cambiar tarjeta, fase o sesión produce otra clave. El colectivo nunca interviene. Los errores de validación son 400 y los de configuración/proveedor son 500 con mensajes genéricos.
+Resend recibe una `idempotencyKey` menor de 256 caracteres, derivada mediante SHA-256 de sesión, colectivo, fase y selección canónica. La misma combinación no duplica el correo; cambiar tarjeta, colectivo, fase o sesión produce otra clave. Los errores de validación son 400 y los de configuración/proveedor son 500 con mensajes genéricos.
 
 ## 11. Justicia 2030 y prompt
 

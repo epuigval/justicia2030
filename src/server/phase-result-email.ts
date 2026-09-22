@@ -21,7 +21,7 @@ export function readPhaseResultEmailConfig(environment: NodeJS.ProcessEnv = proc
 
 export function createPhaseResultIdempotencyKey(result: ValidatedPhaseResult): string {
   const fingerprint = createHash("sha256")
-    .update(JSON.stringify([result.sessionId, result.phaseId, result.selectedCardIds]))
+    .update(JSON.stringify([result.sessionId, result.phaseId, result.collectiveId, result.selectedCardIds]))
     .digest("hex");
   return `justicia2030-phase-result-${fingerprint}`;
 }

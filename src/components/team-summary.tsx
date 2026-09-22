@@ -13,7 +13,7 @@ import { StorageNotice } from "./notice";
 
 export function TeamSummary() {
   const router = useRouter();
-  const { hydrated, sessionId, selectionsByPhase, collectiveId, reset } = useWorkshop();
+  const { hydrated, sessionId, selectionsByPhase, collectiveId, isSelectionSent, markSelectionSent, reset } = useWorkshop();
   if (!hydrated) return <LoadingState />;
   const collective = workshopConfig.collectives.find((item) => item.id === collectiveId);
   if (!collective) return <CollectiveSelector />;
@@ -33,7 +33,7 @@ export function TeamSummary() {
           {orderedPhases(workshopConfig).map((phase) => {
             const count = (selectionsByPhase[phase.id] ?? []).length;
             const selectedCards = (selectionsByPhase[phase.id] ?? []).map((id) => getCard(workshopConfig, id)).filter((card) => card?.phaseId === phase.id);
-            return <article key={phase.id} className={`flex flex-col rounded-2xl border-2 bg-white p-6 shadow-sm accent-${phase.accent}`}><p className="text-sm font-black uppercase tracking-wide text-blue-700">Fase {phase.order}</p><h3 className="mt-2 text-2xl font-black text-blue-950">{phase.name}</h3><p className="mt-3 min-h-14 leading-7 text-slate-600">{phase.description}</p><p className="mt-4 font-black text-slate-800">{count}/{workshopConfig.maxSelectionsPerPhase} seleccionadas</p>{selectedCards.length > 0 ? <ul className="mt-3 flex-1 space-y-2 border-t border-slate-200 pt-3">{selectedCards.map((card) => <li key={card!.id} className="font-semibold text-slate-700">{card!.title}</li>)}</ul> : <p className="mt-3 flex-1 border-t border-slate-200 pt-3 text-slate-500">Sin tarjetas seleccionadas.</p>}<Link href={`/team/phase/${phase.id}`} className="mt-5 flex min-h-11 items-center justify-center rounded-lg bg-blue-700 px-4 font-bold text-white focus-visible:outline-3">Explorar fase</Link><PhaseResultSender sessionId={sessionId} phaseId={phase.id} selectedCardIds={selectionsByPhase[phase.id] ?? []} /></article>;
+            return <article key={phase.id} className={`flex flex-col rounded-2xl border-2 bg-white p-6 shadow-sm accent-${phase.accent}`}><p className="text-sm font-black uppercase tracking-wide text-blue-700">Fase {phase.order}</p><h3 className="mt-2 text-2xl font-black text-blue-950">{phase.name}</h3><p className="mt-3 min-h-14 leading-7 text-slate-600">{phase.description}</p><p className="mt-4 font-black text-slate-800">{count}/{workshopConfig.maxSelectionsPerPhase} seleccionadas</p>{selectedCards.length > 0 ? <ul className="mt-3 flex-1 space-y-2 border-t border-slate-200 pt-3">{selectedCards.map((card) => <li key={card!.id} className="font-semibold text-slate-700">{card!.title}</li>)}</ul> : <p className="mt-3 flex-1 border-t border-slate-200 pt-3 text-slate-500">Sin tarjetas seleccionadas.</p>}<Link href={`/team/phase/${phase.id}`} className="mt-5 flex min-h-11 items-center justify-center rounded-lg bg-blue-700 px-4 font-bold text-white focus-visible:outline-3">Explorar fase</Link><PhaseResultSender sessionId={sessionId} phaseId={phase.id} collectiveId={collective.id} selectedCardIds={selectionsByPhase[phase.id] ?? []} selectionAlreadySent={isSelectionSent(phase.id, selectionsByPhase[phase.id] ?? [])} onSent={() => markSelectionSent(phase.id, selectionsByPhase[phase.id] ?? [])} /></article>;
           })}
         </div>
       </section>

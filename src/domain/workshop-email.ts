@@ -1,15 +1,17 @@
 import { orderedCards } from "./catalog";
 import { isValidSessionId } from "./session";
-import type { CardId, WorkshopCard, WorkshopConfig, WorkshopPhase } from "./types";
+import type { CardId, WorkshopCard, WorkshopCollective, WorkshopConfig, WorkshopPhase } from "./types";
 
 export interface PhaseResultRequest {
   sessionId: string;
   phaseId: string;
+  collectiveId: string;
   selectedCardIds: CardId[];
 }
 
 export interface ValidatedPhaseResult extends PhaseResultRequest {
   phase: WorkshopPhase;
+  collective: WorkshopCollective;
   cards: WorkshopCard[];
 }
 
@@ -22,11 +24,12 @@ export function validatePhaseResultPayload(config: WorkshopConfig, payload: unkn
   if (!payload || typeof payload !== "object" || Array.isArray(payload)) return null;
 
   const candidate = payload as Record<string, unknown>;
-  if (!isValidSessionId(candidate.sessionId) || typeof candidate.phaseId !== "string" || !Array.isArray(candidate.selectedCardIds)) return null;
+  if (!isValidSessionId(candidate.sessionId) || typeof candidate.phaseId !== "string" || typeof candidate.collectiveId !== "string" || !Array.isArray(candidate.selectedCardIds)) return null;
   if (candidate.selectedCardIds.length !== config.maxSelectionsPerPhase || candidate.selectedCardIds.some((id) => typeof id !== "string")) return null;
 
   const phase = config.phases.find((item) => item.id === candidate.phaseId);
-  if (!phase) return null;
+  const collective = config.collectives.find((item) => item.id === candidate.collectiveId);
+  if (!phase || !collective) return null;
 
   const selectedIds = candidate.selectedCardIds as string[];
   const uniqueIds = new Set(selectedIds);
@@ -38,20 +41,23 @@ export function validatePhaseResultPayload(config: WorkshopConfig, payload: unkn
   return {
     sessionId: candidate.sessionId,
     phaseId: phase.id,
+    collectiveId: collective.id,
     selectedCardIds: cards.map((card) => card.id),
     phase,
+    collective,
     cards,
   };
 }
 
 export function createPhaseResultEmail(result: ValidatedPhaseResult): WorkshopEmail {
   return {
-    subject: `Justicia 2030 · ${result.phase.name}`,
+    subject: `Justicia 2030 · ${result.collective.name} · ${result.phase.name}`,
     text: [
       "JUSTICIA 2030",
       "",
-      "Fase:",
-      result.phase.name,
+      `Grupo: ${result.collective.name}`,
+      "",
+      `Fase: ${result.phase.name}`,
       "",
       "Tarjetas seleccionadas:",
       "",
