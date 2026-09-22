@@ -1,34 +1,111 @@
 import { describe, expect, it } from "vitest";
 import { workshopConfig } from "@/config/workshop";
-import { createPhaseSelectionEmail } from "@/domain/workshop-email";
+import { createPhaseResultEmail, validatePhaseResultPayload } from "@/domain/workshop-email";
+import { createPhaseResultIdempotencyKey } from "@/server/phase-result-email";
 
-describe("correo de selección parcial", () => {
-  const collective = workshopConfig.collectives[0];
+const SESSION_ID = "123e4567-e89b-42d3-a456-426614174000";
+
+describe("resultado de una fase", () => {
   const phase = workshopConfig.phases[0];
   const cards = workshopConfig.cards.filter((card) => card.phaseId === phase.id);
+  const validPayload = { sessionId: SESSION_ID, phaseId: phase.id, selectedCardIds: [cards[2].id, cards[0].id, cards[1].id] };
 
-  it("no genera un correo sin tarjetas seleccionadas", () => {
-    expect(createPhaseSelectionEmail(workshopConfig, [], collective, phase)).toBeNull();
+  it("rechaza menos tarjetas que el máximo configurado", () => {
+    expect(validatePhaseResultPayload(workshopConfig, { ...validPayload, selectedCardIds: validPayload.selectedCardIds.slice(0, 2) })).toBeNull();
   });
 
-  it("incluye el grupo y la fase en el asunto", () => {
-    const email = createPhaseSelectionEmail(workshopConfig, [cards[0].id], collective, phase)!;
-    expect(email.subject).toBe(`${collective.name} - ${phase.name}`);
-    expect(email.body).toContain(`Grupo: ${collective.name}\nFase: ${phase.name}`);
+  it("acepta exactamente el máximo y normaliza el orden del catálogo", () => {
+    expect(validatePhaseResultPayload(workshopConfig, validPayload)?.selectedCardIds).toEqual([cards[0].id, cards[1].id, cards[2].id]);
   });
 
-  it("incluye solo los títulos seleccionados en orden de catálogo", () => {
-    const email = createPhaseSelectionEmail(workshopConfig, [cards[2].id, cards[0].id], collective, phase)!;
-    expect(email.body).toContain(`- ${cards[0].title}`);
-    expect(email.body).toContain(`- ${cards[2].title}`);
-    expect(email.body.indexOf(cards[0].title)).toBeLessThan(email.body.indexOf(cards[2].title));
-    expect(email.body).not.toContain(cards[1].title);
+  it("rechaza duplicados, tarjetas inexistentes y tarjetas de otra fase", () => {
+    expect(validatePhaseResultPayload(workshopConfig, { ...validPayload, selectedCardIds: [cards[0].id, cards[0].id, cards[1].id] })).toBeNull();
+    expect(validatePhaseResultPayload(workshopConfig, { ...validPayload, selectedCardIds: [cards[0].id, cards[1].id, "inexistente"] })).toBeNull();
+    expect(validatePhaseResultPayload(workshopConfig, { ...validPayload, selectedCardIds: [cards[0].id, cards[1].id, workshopConfig.cards.find((card) => card.phaseId !== phase.id)!.id] })).toBeNull();
   });
 
-  it("codifica asunto y cuerpo en un enlace mailto", () => {
-    const email = createPhaseSelectionEmail(workshopConfig, [cards[0].id], collective, phase)!;
-    const query = new URLSearchParams(email.mailto.slice("mailto:?".length));
-    expect(query.get("subject")).toBe(email.subject);
-    expect(query.get("body")).toBe(email.body);
+  it("rechaza sessionId ausente o inválido", () => {
+    expect(validatePhaseResultPayload(workshopConfig, { phaseId: phase.id, selectedCardIds: validPayload.selectedCardIds })).toBeNull();
+    expect(validatePhaseResultPayload(workshopConfig, { ...validPayload, sessionId: "no-es-uuid" })).toBeNull();
+  });
+
+  it("rechaza una forma no objeto, una fase desconocida o una selección que no sea array", () => {
+    expect(validatePhaseResultPayload(workshopConfig, null)).toBeNull();
+    expect(validatePhaseResultPayload(workshopConfig, { ...validPayload, phaseId: "fase-inexistente" })).toBeNull();
+    expect(validatePhaseResultPayload(workshopConfig, { ...validPayload, selectedCardIds: "no-es-array" })).toBeNull();
+  });
+
+  it("ignora colectivo, perfil y campos de email añadidos por el cliente", () => {
+    const result = validatePhaseResultPayload(workshopConfig, {
+      ...validPayload,
+      collectiveId: "colectivo-inyectado",
+      profileId: "perfil-inyectado",
+      to: "ataque@example.com",
+      from: "ataque@example.com",
+      subject: "Asunto manipulado",
+      text: "Contenido manipulado",
+    });
+    expect(result).not.toBeNull();
+    expect(result).not.toHaveProperty("collectiveId");
+    expect(result).not.toHaveProperty("profileId");
+    expect(result).not.toHaveProperty("to");
+  });
+
+  it("construye asunto y texto exactos desde el catálogo", () => {
+    const result = validatePhaseResultPayload(workshopConfig, validPayload)!;
+    const email = createPhaseResultEmail(result);
+    expect(email.subject).toBe(`Justicia 2030 · ${phase.name}`);
+    expect(email.text).toBe([
+      "JUSTICIA 2030",
+      "",
+      "Fase:",
+      phase.name,
+      "",
+      "Tarjetas seleccionadas:",
+      "",
+      `- ${cards[0].title}`,
+      `- ${cards[1].title}`,
+      `- ${cards[2].title}`,
+    ].join("\n"));
+    expect(email.text.match(/^- /gm)).toHaveLength(3);
+    for (const card of cards.slice(0, 3)) {
+      expect(email.text).not.toContain(card.id);
+      expect(email.text).not.toContain(card.challenge);
+      expect(email.text).not.toContain(card.solution);
+      for (const benefit of card.benefits) expect(email.text).not.toContain(benefit);
+    }
+    expect(`${email.subject}\n${email.text}`).not.toContain(workshopConfig.collectives[0].name);
+  });
+});
+
+describe("idempotencia del resultado", () => {
+  const firstPhase = workshopConfig.phases[0];
+  const secondPhase = workshopConfig.phases[1];
+  const firstCards = workshopConfig.cards.filter((card) => card.phaseId === firstPhase.id);
+  const secondCards = workshopConfig.cards.filter((card) => card.phaseId === secondPhase.id);
+
+  function result(sessionId: string, phaseId: string, selectedCardIds: string[], extra: Record<string, unknown> = {}) {
+    return validatePhaseResultPayload(workshopConfig, { sessionId, phaseId, selectedCardIds, ...extra })!;
+  }
+
+  it("mantiene la clave para la misma selección en distinto orden", () => {
+    const first = result(SESSION_ID, firstPhase.id, [firstCards[0].id, firstCards[1].id, firstCards[2].id]);
+    const reordered = result(SESSION_ID, firstPhase.id, [firstCards[2].id, firstCards[0].id, firstCards[1].id]);
+    expect(createPhaseResultIdempotencyKey(first)).toBe(createPhaseResultIdempotencyKey(reordered));
+  });
+
+  it("cambia al cambiar tarjeta, fase o sesión", () => {
+    const base = createPhaseResultIdempotencyKey(result(SESSION_ID, firstPhase.id, firstCards.slice(0, 3).map((card) => card.id)));
+    expect(createPhaseResultIdempotencyKey(result(SESSION_ID, firstPhase.id, [firstCards[0].id, firstCards[1].id, firstCards[3].id]))).not.toBe(base);
+    expect(createPhaseResultIdempotencyKey(result(SESSION_ID, secondPhase.id, secondCards.slice(0, 3).map((card) => card.id)))).not.toBe(base);
+    expect(createPhaseResultIdempotencyKey(result("123e4567-e89b-42d3-a456-426614174001", firstPhase.id, firstCards.slice(0, 3).map((card) => card.id)))).not.toBe(base);
+  });
+
+  it("no incorpora el colectivo y nunca supera 256 caracteres", () => {
+    const selectedCardIds = firstCards.slice(0, 3).map((card) => card.id);
+    const first = result(SESSION_ID, firstPhase.id, selectedCardIds, { collectiveId: "a" });
+    const second = result(SESSION_ID, firstPhase.id, selectedCardIds, { collectiveId: "b" });
+    expect(createPhaseResultIdempotencyKey(first)).toBe(createPhaseResultIdempotencyKey(second));
+    expect(createPhaseResultIdempotencyKey(first).length).toBeLessThanOrEqual(256);
   });
 });

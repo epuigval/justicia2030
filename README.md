@@ -18,10 +18,11 @@ Se fijan TypeScript 6 y ESLint 9 porque son las versiones verificadas compatible
 
 ```bash
 npm install
+copy .env.example .env.local
 npm run dev
 ```
 
-Abre `http://localhost:3000`. No se necesitan variables de entorno, backend ni servicios externos.
+Completa en `.env.local` las credenciales y direcciones de Resend descritas más abajo y abre `http://localhost:3000`. El build no requiere estas variables; solo se validan cuando se atiende un envío.
 
 ## Scripts
 
@@ -42,19 +43,21 @@ Abre `http://localhost:3000`. No se necesitan variables de entorno, backend ni s
 - `/team/phase/[phaseId]/card/[cardId]`: detalle de tarjeta.
 - `/team/justicia-2030`: resultado del equipo.
 - `/facilitator`: espacio independiente del dinamizador.
+- `POST /api/send-phase-result`: valida y envía por Resend el resultado de una fase.
 
 No existe `teamId`, ruta por equipo ni identificación nominal.
 
 ## Estructura
 
 ```text
-src/app/             rutas, layouts, 404 y estilos
+src/app/             rutas, Route Handler, layouts, 404 y estilos
 src/components/      UI reutilizable
 src/config/          configuración, contenido y plantilla del prompt
 src/context/         reducer y proveedor por ámbito
 src/domain/          tipos y funciones puras
-src/persistence/     adaptador localStorage V1
-tests/domain/        catálogo, motor, prompt y persistencia
+src/persistence/     adaptador localStorage V3 y migraciones V1/V2
+src/server/          configuración, idempotencia y envío Resend
+tests/domain/        catálogo, motor, email y persistencia
 tests/components/    interacción principal
 docs/                especificación y plan de las dos iteraciones
 ```
@@ -81,24 +84,33 @@ La plantilla actual es un borrador funcional **pendiente de validación por el e
 
 El prompt solo se genera cuando cada fase tiene exactamente el máximo configurado. No se almacena ni se envía: se muestra y se copia mediante la API del portapapeles.
 
+## Envío de resultados por fase
+
+Cuando una fase del equipo tiene exactamente tres tarjetas, su resumen muestra «Enviar resultados». El navegador envía únicamente `sessionId`, `phaseId` y `selectedCardIds` a `POST /api/send-phase-result`. El Route Handler valida los datos contra `workshopConfig`, ordena las tarjetas según el catálogo y construye en servidor un email de texto plano. Se envía un correo independiente por fase; no existe un correo final adicional.
+
+Resend se usa solo en servidor. Remitente, destinatarios, asunto y texto nunca proceden del cliente. Una clave SHA-256 determinista basada en sesión, fase y selección canónica se entrega a Resend como `idempotencyKey`, evitando duplicados para la misma combinación. El colectivo se conserva en la experiencia, pero no se envía, no aparece en el email y no participa en la idempotencia.
+
 ## Persistencia, continuación y reinicio
 
-La aplicación guarda únicamente `schemaVersion` y los IDs seleccionados:
+La aplicación guarda únicamente `schemaVersion`, `sessionId`, los IDs seleccionados y `collectiveId`:
 
 - Equipo: `justicia2030:v1:team`.
 - Dinamizador: `justicia2030:v1:facilitator`.
 
+El contrato actual es V3. Los estados V1 migran conservando selecciones; los V2 conservan además un colectivo válido; ambos reciben un UUID nuevo y se persisten como V3. Un V3 válido conserva su `sessionId`.
+
 Cada rol tiene una instancia separada de contexto/reducer. La hidratación se realiza en cliente y no se escribe el estado vacío antes de completarla. Un error básico de lectura o escritura muestra un aviso y permite continuar en memoria.
 
-Cuando existen selecciones de equipo, `/` ofrece «Continuar partida». «Comenzar nueva partida» elimina solo el estado del equipo; «Comenzar nueva sesión» elimina solo el del dinamizador. Ambos requieren confirmación y nunca se usa `localStorage.clear()`.
+Cuando existen selecciones de equipo, `/` ofrece «Continuar partida». «Comenzar nueva partida» elimina solo el estado del equipo y persiste una sesión nueva; «Comenzar nueva sesión» hace lo mismo únicamente para el dinamizador. Ambos requieren confirmación y nunca se usa `localStorage.clear()`.
 
 Cada equipo debe usar su propio dispositivo o perfil. Solo hay una sesión de equipo activa por perfil. No existe sincronización entre equipos, con el dinamizador ni entre pestañas; si se abren varias pestañas, gana el último guardado. Borrar manualmente los datos del sitio desde el navegador elimina ambos estados de ese navegador.
 
 ## Seguridad, privacidad y funcionamiento
 
 - La aplicación funciona online y no garantiza modo offline.
-- No carga recursos remotos en runtime: usa fuentes del sistema, assets locales y dependencias npm empaquetadas.
-- No hay APIs externas, llamadas a IA, analítica, trackers, backend, autenticación ni secretos.
+- No carga recursos visuales remotos en runtime: usa fuentes del sistema y assets locales.
+- La única integración externa en runtime es Resend desde el Route Handler; no hay llamadas a IA, analítica ni trackers.
+- La API key y las direcciones se leen únicamente en servidor y nunca deben incluirse en logs o respuestas.
 - Las dependencias npm se descargan en instalación/build; esto no introduce cargas remotas durante el uso.
 - `localStorage` no es un control de acceso ni protege frente a una persona con DevTools.
 - No deben introducirse datos personales, expedientes ni información confidencial en las tarjetas.
@@ -116,11 +128,20 @@ La suite separa invariantes específicas del fixture y reglas genéricas. Incluy
 
 ## Despliegue en Vercel
 
-Importa el repositorio en Vercel y utiliza la detección automática de Next.js. No configures variables de entorno ni `output: "export"`; el proyecto usa el despliegue nativo estándar. El comando de build es `npm run build`.
+Importa el repositorio en Vercel y utiliza la detección automática de Next.js. No configures `output: "export"`; el Route Handler requiere el runtime estándar de Next.js. El comando de build es `npm run build`.
+
+Configura estas variables tanto en Preview como en Production y vuelve a desplegar después de añadirlas:
+
+- `RESEND_API_KEY`: API key propia de esta aplicación.
+- `RESEND_FROM_EMAIL`: remitente de un dominio verificado, por ejemplo `Justicia 2030 <resultados@justicia2030.party>`.
+- `RESULTS_EMAIL_TO`: uno o varios destinatarios separados por comas.
+- `RESULTS_REPLY_TO`: dirección de respuesta opcional.
+
+Para desarrollo, copia `.env.example` a `.env.local`. `.env.local` está ignorado por Git y nunca debe versionarse. En Resend hay que verificar el dominio remitente y crear una API key independiente para esta aplicación; el mismo dominio verificado puede utilizarse desde otras aplicaciones con sus propias claves.
 
 ## Limitaciones del MVP
 
-No incluye backend, autenticación, sincronización, comunicación entre roles, tiempo real, IA, CMS, Excel, analítica, PWA, offline garantizado, historial, múltiples partidas por perfil, ranking, drag and drop ni identidad nominal de equipo. Una identificación nominal podría estudiarse en una versión posterior, pero no está diseñada ni preparada en este MVP.
+Salvo el Route Handler de envío por Resend, no incluye backend adicional, autenticación, sincronización, comunicación entre roles, tiempo real, IA, CMS, Excel, analítica, PWA, offline garantizado, historial, múltiples partidas por perfil, ranking, drag and drop ni identidad nominal de equipo. Una identificación nominal podría estudiarse en una versión posterior, pero no está diseñada ni preparada en este MVP.
 
 ## Iteración 2 pendiente
 

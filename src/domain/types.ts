@@ -50,6 +50,7 @@ export interface WorkshopConfig {
 export type SelectionsByPhase = Record<PhaseId, CardId[]>;
 
 export interface WorkshopSessionState {
+  sessionId: string;
   selectionsByPhase: SelectionsByPhase;
   collectiveId: string | null;
 }
@@ -61,6 +62,13 @@ export interface PersistedWorkshopStateV1 {
 
 export interface PersistedWorkshopStateV2 {
   schemaVersion: 2;
+  selectionsByPhase: SelectionsByPhase;
+  collectiveId: string | null;
+}
+
+export interface PersistedWorkshopStateV3 {
+  schemaVersion: 3;
+  sessionId: string;
   selectionsByPhase: SelectionsByPhase;
   collectiveId: string | null;
 }

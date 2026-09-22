@@ -7,16 +7,104 @@ import { CardTile } from "@/components/card-tile";
 import { CollectiveSelector } from "@/components/collective-selector";
 import { ResetConfirm } from "@/components/reset-confirm";
 import { PhaseExplorer } from "@/components/phase-explorer";
-import { WorkshopProvider } from "@/context/workshop-context";
+import { PhaseResultSender } from "@/components/phase-result-sender";
+import { WorkshopProvider, useWorkshop } from "@/context/workshop-context";
 import { workshopConfig } from "@/config/workshop";
 
 afterEach(() => {
   cleanup();
   localStorage.clear();
   vi.restoreAllMocks();
+  vi.unstubAllGlobals();
+});
+
+function SessionResetProbe() {
+  const { hydrated, sessionId, reset } = useWorkshop();
+  if (!hydrated) return null;
+  return <><output>{sessionId}</output><button type="button" onClick={reset}>Reiniciar sesión de prueba</button></>;
+}
+
+describe("envío del resultado de fase", () => {
+  const sessionId = "123e4567-e89b-42d3-a456-426614174000";
+  const phase = workshopConfig.phases[0];
+  const cards = workshopConfig.cards.filter((card) => card.phaseId === phase.id);
+
+  it("no permite enviar con menos de tres tarjetas y muestra la acción con tres", () => {
+    const { rerender } = render(<PhaseResultSender sessionId={sessionId} phaseId={phase.id} selectedCardIds={cards.slice(0, 2).map((card) => card.id)} />);
+    expect(screen.queryByRole("button", { name: "Enviar resultados" })).not.toBeInTheDocument();
+    rerender(<PhaseResultSender sessionId={sessionId} phaseId={phase.id} selectedCardIds={cards.slice(0, 3).map((card) => card.id)} />);
+    expect(screen.getByRole("button", { name: "Enviar resultados" })).toBeEnabled();
+  });
+
+  it("muestra el envío en curso, deshabilita el doble clic y solo manda los tres campos", async () => {
+    let resolveRequest!: (response: { ok: boolean }) => void;
+    const fetchMock = vi.fn<(input: string, init?: RequestInit) => Promise<{ ok: boolean }>>(() => new Promise<{ ok: boolean }>((resolve) => { resolveRequest = resolve; }));
+    vi.stubGlobal("fetch", fetchMock);
+    const user = userEvent.setup();
+    const selectedCardIds = cards.slice(0, 3).map((card) => card.id);
+    render(<PhaseResultSender sessionId={sessionId} phaseId={phase.id} selectedCardIds={selectedCardIds} />);
+
+    await user.click(screen.getByRole("button", { name: "Enviar resultados" }));
+    const sending = screen.getByRole("button", { name: "Enviando..." });
+    expect(sending).toBeDisabled();
+    await user.click(sending);
+    expect(fetchMock).toHaveBeenCalledOnce();
+    expect(JSON.parse(fetchMock.mock.calls[0][1]!.body as string)).toEqual({ sessionId, phaseId: phase.id, selectedCardIds });
+
+    resolveRequest({ ok: true });
+    expect(await screen.findByText("Resultados enviados correctamente")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Enviar resultados" })).toBeEnabled();
+  });
+
+  it("muestra el error y permite reintentar sin alterar la selección", async () => {
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce({ ok: false })
+      .mockResolvedValueOnce({ ok: true });
+    vi.stubGlobal("fetch", fetchMock);
+    const user = userEvent.setup();
+    const selectedCardIds = cards.slice(0, 3).map((card) => card.id);
+    render(<PhaseResultSender sessionId={sessionId} phaseId={phase.id} selectedCardIds={selectedCardIds} />);
+
+    await user.click(screen.getByRole("button", { name: "Enviar resultados" }));
+    expect(await screen.findByText("No se pudieron enviar los resultados. Inténtalo de nuevo.")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Enviar resultados" }));
+    expect(await screen.findByText("Resultados enviados correctamente")).toBeInTheDocument();
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(JSON.parse(fetchMock.mock.calls[1][1]!.body as string).selectedCardIds).toEqual(selectedCardIds);
+  });
+
+  it("oculta el éxito anterior al cambiar la combinación", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true }));
+    const user = userEvent.setup();
+    const firstSelection = cards.slice(0, 3).map((card) => card.id);
+    const { rerender } = render(<PhaseResultSender sessionId={sessionId} phaseId={phase.id} selectedCardIds={firstSelection} />);
+    await user.click(screen.getByRole("button", { name: "Enviar resultados" }));
+    expect(await screen.findByText("Resultados enviados correctamente")).toBeInTheDocument();
+
+    rerender(<PhaseResultSender sessionId={sessionId} phaseId={phase.id} selectedCardIds={[cards[0].id, cards[1].id, cards[3].id]} />);
+    expect(screen.queryByText("Resultados enviados correctamente")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Enviar resultados" })).toBeEnabled();
+  });
 });
 
 describe("componentes principales", () => {
+  it("persiste un UUID nuevo al reiniciar el equipo", async () => {
+    const previousSessionId = "123e4567-e89b-42d3-a456-426614174000";
+    const selectionsByPhase = Object.fromEntries(workshopConfig.phases.map((phase) => [phase.id, []]));
+    localStorage.setItem("justicia2030:v1:team", JSON.stringify({ schemaVersion: 3, sessionId: previousSessionId, selectionsByPhase, collectiveId: null }));
+    const user = userEvent.setup();
+    render(<WorkshopProvider scope="team"><SessionResetProbe /></WorkshopProvider>);
+    expect(await screen.findByText(previousSessionId)).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Reiniciar sesión de prueba" }));
+    await waitFor(() => {
+      const persisted = JSON.parse(localStorage.getItem("justicia2030:v1:team")!);
+      expect(persisted.schemaVersion).toBe(3);
+      expect(persisted.sessionId).not.toBe(previousSessionId);
+      expect(persisted.sessionId).toMatch(/^[0-9a-f-]{36}$/i);
+    });
+  });
+
   it("genera Todas y los filtros configurados", async () => {
     const user = userEvent.setup();
     const onChange = vi.fn();

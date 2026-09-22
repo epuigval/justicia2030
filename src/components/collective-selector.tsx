@@ -15,7 +15,7 @@ export function CollectiveSelector() {
         <div>
           <p className="text-sm font-black uppercase tracking-[0.16em] text-blue-700">Inicio de la partida</p>
           <h1 className="mt-2 text-3xl font-black text-blue-950 sm:text-4xl">Selecciona vuestro colectivo</h1>
-          <p className="mt-3 max-w-2xl text-lg leading-8 text-slate-600">Esta elección identifica los resultados enviados durante todas las fases. Varios equipos pueden elegir el mismo colectivo.</p>
+          <p className="mt-3 max-w-2xl text-lg leading-8 text-slate-600">Esta elección adapta el contexto y los criterios de priorización durante el workshop. Varios equipos pueden elegir el mismo colectivo.</p>
           <label htmlFor="collective" className="mt-7 block font-black text-blue-950">Equipo o colectivo</label>
           <select id="collective" value={selectedId} onChange={(event) => setSelectedId(event.target.value)} className="mt-2 min-h-12 w-full max-w-xl rounded-lg border border-slate-300 bg-white px-4 text-slate-900 focus-visible:outline-3 focus-visible:outline-blue-600">
             <option value="">Selecciona una opción</option>
