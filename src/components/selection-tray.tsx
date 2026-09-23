@@ -2,7 +2,7 @@ import { getCard, getCategory } from "@/domain/catalog";
 import type { CardId, PhaseId, WorkshopConfig } from "@/domain/types";
 import { PhaseResultSender } from "./phase-result-sender";
 
-const categoryStyles = {
+const categoryStyles: Record<string, string> = {
   personas: "bg-[#e0e0ff]",
   procesos: "bg-[#f8e1b7]",
   tecnologia: "bg-[#c6d7fa]",

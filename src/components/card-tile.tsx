@@ -2,7 +2,7 @@ import Link from "next/link";
 import { getCategory } from "@/domain/catalog";
 import type { WorkshopCard, WorkshopConfig } from "@/domain/types";
 
-const categoryStyles = {
+const categoryStyles: Record<string, string> = {
   personas: "bg-[#e0e0ff]",
   procesos: "bg-[#f8e1b7]",
   tecnologia: "bg-[#c6d7fa]",
