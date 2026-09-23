@@ -487,7 +487,7 @@ export const workshopConfig: WorkshopConfig = {
     "shortName": "Inteligente",
     "description": "Debatid y escoged entre temas relacionados con la inteligencia artificial.",
     "order": 3,
-    "accent": "blue"
+    "accent": "violet"
   }
 ],
   categories: [
