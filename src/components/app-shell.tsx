@@ -6,7 +6,7 @@ export function AppShell({ children, roleLabel }: { children: ReactNode; roleLab
   return (
     <div className="min-h-screen bg-slate-50 text-slate-950">
       <header className="border-b border-[#d6d6d6] bg-white">
-        <div className="flex h-16 items-center px-6 lg:px-24">
+        <div className="mx-auto flex h-16 max-w-7xl items-center px-4 sm:px-6 lg:px-8">
           <Link href="/" className="inline-flex items-center gap-4 rounded-md focus-visible:outline-3 focus-visible:outline-offset-4 focus-visible:outline-[#114dcd]">
             <span className="relative h-8 w-[72px] shrink-0 overflow-hidden">
               <Image src="/generalitat-valenciana-logo.jpg" alt="Generalitat Valenciana" width={647} height={395} className="absolute left-[-15px] top-[-16px] h-auto w-[104px] max-w-none" priority />
