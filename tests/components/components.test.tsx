@@ -141,15 +141,14 @@ describe("componentes principales", () => {
 
   it("deshabilita una tarjeta no seleccionada al alcanzar el máximo", () => {
     render(<CardTile config={workshopConfig} card={workshopConfig.cards[0]} selected={false} atLimit onToggle={vi.fn()} onOpenDetail={vi.fn()} />);
-    expect(screen.getByRole("button", { name: "Seleccionar tarjeta" })).toBeDisabled();
-    expect(screen.getByText(/Máximo 3 tarjetas/)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Seleccionar" })).toBeDisabled();
   });
 
   it("filtra tarjetas por categoría dentro del explorador", async () => {
     const user = userEvent.setup();
     const phase = workshopConfig.phases[0];
     render(<WorkshopProvider scope="team"><PhaseExplorer phaseId={phase.id} onOpenDetail={vi.fn()} /></WorkshopProvider>);
-    await screen.findByRole("heading", { name: phase.name });
+    await screen.findByRole("heading", { name: `FASE ${phase.order} - ${phase.name}` });
     await user.click(screen.getByRole("button", { name: "Personas" }));
     const expected = workshopConfig.cards.filter((card) => card.phaseId === phase.id && card.categoryId === "personas");
     for (const card of expected) expect(screen.getByRole("heading", { name: card.title })).toBeInTheDocument();
@@ -160,11 +159,11 @@ describe("componentes principales", () => {
     const user = userEvent.setup();
     const phase = workshopConfig.phases[0];
     render(<WorkshopProvider scope="team"><PhaseExplorer phaseId={phase.id} onOpenDetail={vi.fn()} /></WorkshopProvider>);
-    await screen.findByRole("heading", { name: phase.name });
-    await user.click(screen.getAllByRole("button", { name: "Seleccionar tarjeta" })[0]);
-    expect(screen.getByText("1/3 tarjetas · mismo peso")).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "Quitar" }));
-    expect(screen.getByText("0/3 tarjetas · mismo peso")).toBeInTheDocument();
+    await screen.findByRole("heading", { name: `FASE ${phase.order} - ${phase.name}` });
+    await user.click(screen.getAllByRole("button", { name: "Seleccionar" })[0]);
+    expect(screen.getByText("1/3 tarjetas")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: new RegExp(`Quitar ${workshopConfig.cards[0].title}`) }));
+    expect(screen.getByText("0/3 tarjetas")).toBeInTheDocument();
   });
 
   it("obliga a elegir un colectivo y muestra su descripción", async () => {
@@ -197,10 +196,10 @@ describe("componentes principales", () => {
     const user = userEvent.setup();
     const phase = workshopConfig.phases[0];
     render(<WorkshopProvider scope="facilitator"><PhaseExplorer phaseId={phase.id} onOpenDetail={vi.fn()} /></WorkshopProvider>);
-    await screen.findByRole("heading", { name: phase.name });
-    const selectButtons = screen.getAllByRole("button", { name: "Seleccionar tarjeta" });
+    await screen.findByRole("heading", { name: `FASE ${phase.order} - ${phase.name}` });
+    const selectButtons = screen.getAllByRole("button", { name: "Seleccionar" });
     for (const button of selectButtons.slice(0, 4)) await user.click(button);
-    expect(screen.getByText("4 tarjetas · mismo peso")).toBeInTheDocument();
+    expect(screen.getByText("4 tarjetas")).toBeInTheDocument();
     expect(selectButtons[3]).not.toBeDisabled();
   });
 

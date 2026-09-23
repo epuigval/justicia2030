@@ -16,5 +16,5 @@ export function TeamPhase({ phaseId }: { phaseId: string }) {
   const { hydrated, collectiveId } = useWorkshop();
   if (!hydrated) return <LoadingState />;
   if (!workshopConfig.collectives.some((item) => item.id === collectiveId)) return <CollectiveSelector />;
-  return <main className="mx-auto max-w-[1600px] px-4 py-8 sm:px-6 lg:px-8"><StorageNotice /><nav className="mb-6 flex flex-wrap gap-4" aria-label="Navegación de la fase"><Link href="/team" className="inline-flex min-h-11 items-center font-bold text-blue-800 underline">Volver al resumen</Link></nav><PhaseExplorer phaseId={phaseId} onOpenDetail={setDetailCard} />{detailCard ? <CardDetailModal card={detailCard} onClose={() => setDetailCard(null)} /> : null}</main>;
+  return <main className="mx-auto w-full max-w-[var(--container-7xl)] px-3 py-8 sm:px-6"><div className="rounded-[20px] border border-[#d2d2d2] bg-white p-8 sm:p-10 lg:p-12"><StorageNotice /><nav className="mb-8" aria-label="Navegación de la fase"><Link href="/team" className="inline-flex items-center gap-2 text-sm font-semibold text-[#114dcd] focus-visible:outline-3"><img src="/icons/arrow_back.svg" alt="" className="size-4" />Volver a Vista Principal</Link></nav><PhaseExplorer phaseId={phaseId} onOpenDetail={setDetailCard} />{detailCard ? <CardDetailModal card={detailCard} onClose={() => setDetailCard(null)} /> : null}</div></main>;
 }

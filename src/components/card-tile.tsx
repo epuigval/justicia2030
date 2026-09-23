@@ -2,6 +2,13 @@ import Link from "next/link";
 import { getCategory } from "@/domain/catalog";
 import type { WorkshopCard, WorkshopConfig } from "@/domain/types";
 
+const categoryStyles = {
+  personas: "bg-[#e0e0ff]",
+  procesos: "bg-[#f8e1b7]",
+  tecnologia: "bg-[#c6d7fa]",
+  gobernanza: "bg-[#cbe2e5]",
+} as const;
+
 export function CardTile({ config, card, selected, atLimit, onToggle, detailHref, onOpenDetail }: {
   config: WorkshopConfig;
   card: WorkshopCard;
@@ -13,23 +20,22 @@ export function CardTile({ config, card, selected, atLimit, onToggle, detailHref
 }) {
   const disabled = atLimit && !selected;
   const category = getCategory(config, card.categoryId);
-  const buttonLabel = selected ? "Quitar selección" : "Seleccionar tarjeta";
+  const buttonLabel = selected ? "Quitar" : "Seleccionar";
   return (
-    <article className={`flex h-full flex-col rounded-2xl border-2 bg-white p-5 shadow-sm ${selected ? "border-blue-700 ring-2 ring-blue-100" : "border-slate-200"}`}>
-      <div className="mb-3 flex items-start justify-between gap-3">
-        <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-black uppercase tracking-wide text-slate-700">{category?.name}</span>
-        <span className={`text-sm font-bold ${selected ? "text-blue-800" : "text-slate-500"}`}>{selected ? "✓ Seleccionada" : "No seleccionada"}</span>
+    <article className={`flex min-h-[241px] h-full flex-col rounded-2xl border bg-white p-5 shadow-[0_1px_1.5px_rgba(0,0,0,0.04)] ${selected ? "border-[#1d4ed8]" : "border-[#d2d2d2]"}`}>
+      <div className="flex items-center justify-between gap-3">
+        <span className={`rounded px-2 py-0.5 text-[10px] font-bold uppercase leading-[15px] tracking-[0.5px] text-[#0a0a0a] ${categoryStyles[card.categoryId]}`}>{category?.name}</span>
+        {selected ? <span className="inline-flex items-center gap-1 text-[11px] font-medium leading-[16.5px] text-[#157f00]"><img src="/icons/check.svg" alt="" className="size-4" />Seleccionada</span> : null}
       </div>
-      <h3 className="text-xl font-black text-blue-950">{card.title}</h3>
-      <p className="mt-3 flex-1 leading-7 text-slate-650">{card.shortDescription}</p>
-      {disabled ? <p className="mt-3 text-sm font-semibold text-amber-800">Máximo {config.maxSelectionsPerPhase} tarjetas. Quita una selección para elegir otra.</p> : null}
-      <div className="mt-5 grid gap-2 sm:grid-cols-2">
+      <h3 className="mt-4 text-sm font-bold leading-[19.25px] text-[#0a0a0a]">{card.title}</h3>
+      <p className="mt-2.5 flex-1 text-xs leading-[19.5px] text-[#565656]">{card.shortDescription}</p>
+      <div className="mt-6 grid grid-cols-2 gap-3">
         {detailHref ? (
-          <Link className="flex min-h-11 items-center justify-center rounded-lg border border-blue-700 px-3 text-center font-bold text-blue-800 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-blue-600" href={detailHref}>Ver detalle</Link>
+          <Link className="flex h-8 items-center justify-center rounded-lg border border-[#114dcd] px-3 text-center text-xs font-medium text-[#114dcd] focus-visible:outline-3" href={detailHref}>Ver detalle</Link>
         ) : (
-          <button type="button" className="min-h-11 rounded-lg border border-blue-700 px-3 font-bold text-blue-800 focus-visible:outline-3" onClick={onOpenDetail}>Ver detalle</button>
+          <button type="button" className="h-8 rounded-lg border border-[#114dcd] px-3 text-xs font-medium text-[#114dcd] focus-visible:outline-3" onClick={onOpenDetail}>Ver detalle</button>
         )}
-        <button type="button" disabled={disabled} onClick={onToggle} className="min-h-11 rounded-lg bg-blue-700 px-3 font-bold text-white focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-blue-600 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-600">
+        <button type="button" disabled={disabled} onClick={onToggle} className={`h-8 rounded-lg px-3 text-xs font-medium focus-visible:outline-3 disabled:cursor-not-allowed disabled:bg-[#e6e6e6] disabled:text-[#0a0a0a] ${selected ? "border border-[#1d4ed8] bg-white text-[#1d4ed8]" : "bg-[#114dcd] text-white"}`}>
           {buttonLabel}
         </button>
       </div>
