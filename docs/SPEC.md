@@ -24,7 +24,6 @@ La infografía de `docs/infografia-justica-2030.png` es solo una referencia de c
 | `/team` | Resumen, progreso y navegación libre por las fases. |
 | `/team/phase/[phaseId]` | Exploración, filtros y selección de una fase. |
 | `/team/phase/[phaseId]/card/[cardId]` | Detalle completo de una tarjeta de esa fase. |
-| `/team/justicia-2030` | Progreso final y prompt del equipo. |
 | `/facilitator` | Flujo completo e independiente del dinamizador en una pantalla. |
 | `POST /api/send-phase-result` | Validación y envío por Resend del resultado de una fase. |
 
@@ -35,12 +34,12 @@ No existen rutas con `teamId` ni parámetros para identificar grupos. Una fase o
 ### 4.1 Equipo
 
 1. En `/`, si no hay selecciones válidas guardadas, el usuario elige «Iniciar como equipo». Si ya hay selecciones, elige «Continuar partida» o confirma «Comenzar nueva partida».
-2. `/team` muestra todas las fases y el progreso por fase y total. Ninguna fase está bloqueada y Justicia 2030 siempre es accesible.
+2. `/team` muestra todas las fases y el progreso por fase. Ninguna fase está bloqueada.
 3. En una fase, el filtro inicial es «Todas». El usuario filtra, abre detalles, selecciona o deselecciona tarjetas y puede quitar selecciones desde una bandeja siempre accesible.
 4. Al alcanzar el máximo, las tarjetas no seleccionadas quedan deshabilitadas con una explicación visible; las seleccionadas siguen permitiendo deselección.
 5. Al completar exactamente tres tarjetas, el resumen de esa fase permite enviarlas. El envío no bloquea la fase y una combinación modificada puede enviarse de nuevo.
-6. En Justicia 2030, una sesión incompleta muestra el progreso y las fases pendientes.
-7. «Comenzar nueva partida» pide confirmación, elimina solo el estado del equipo, crea y persiste un UUID de sesión nuevo y navega a `/team`.
+6. Cuando las tres fases están completas y sus tres resultados se han enviado correctamente, aparece un modal centrado con «Resultado generado correctamente. Podrás verlo al final de la actividad».
+7. «Volver a repetir la actividad» reinicia directamente el estado del equipo, crea y persiste un UUID de sesión nuevo y vuelve a la selección de colectivo.
 
 ### 4.2 Dinamizador
 
@@ -129,9 +128,9 @@ El email de texto plano usa el asunto `Justicia 2030 · {colectivo} · {fase}` y
 
 Resend recibe una `idempotencyKey` menor de 256 caracteres, derivada mediante SHA-256 de sesión, colectivo, fase y selección canónica. La misma combinación no duplica el correo; cambiar tarjeta, colectivo, fase o sesión produce otra clave. Los errores de validación son 400 y los de configuración/proveedor son 500 con mensajes genéricos.
 
-## 11. Justicia 2030 y prompt
+## 11. Justicia 2030 y prompt del dinamizador
 
-La sección siempre es accesible. Hasta que cada fase tenga exactamente el máximo configurado, se muestra progreso, fases incompletas y una explicación; no hay prompt parcial y «Copiar prompt» está deshabilitado.
+La sección permanece accesible en la vista del dinamizador. Hasta que cada fase tenga exactamente el máximo configurado, se muestra progreso, fases incompletas y una explicación; no hay prompt parcial y «Copiar prompt» está deshabilitado.
 
 Al completarse todas las fases, el generador puro recorre fases y tarjetas en orden canónico, emite una cabecera `##` por fase y una `###` por tarjeta, e incluye categoría, título, reto, solución, beneficios y pregunta. Omite IDs y `shortDescription`. El mismo conjunto siempre produce el mismo resultado y un cambio lo recalcula automáticamente.
 
@@ -141,7 +140,7 @@ El prompt se muestra en un área de texto de solo lectura. La copia usa `navigat
 
 ## 12. Estados vacíos y de error
 
-La Iteración 1 cubre: hidratación; fase sin tarjetas; filtro sin resultados; ninguna selección; fase o Justicia 2030 incompleta; estado persistido básico ilegible; fallo básico de lectura, escritura o borrado; fallo de portapapeles; 404; relación fase/tarjeta incoherente; y confirmación de reinicio. Los fallos recuperables no rompen la aplicación.
+La Iteración 1 cubre: hidratación; fase sin tarjetas; filtro sin resultados; ninguna selección; fase o Justicia 2030 del dinamizador incompleta; estado persistido básico ilegible; fallo básico de lectura, escritura o borrado; fallo de portapapeles; 404; relación fase/tarjeta incoherente; y confirmación de reinicio. Los fallos recuperables no rompen la aplicación.
 
 ## 13. Seguridad y privacidad
 

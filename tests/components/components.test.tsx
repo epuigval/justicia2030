@@ -8,6 +8,7 @@ import { CollectiveSelector } from "@/components/collective-selector";
 import { ResetConfirm } from "@/components/reset-confirm";
 import { PhaseExplorer } from "@/components/phase-explorer";
 import { PhaseResultSender } from "@/components/phase-result-sender";
+import { TeamSummary } from "@/components/team-summary";
 import { WorkshopProvider, useWorkshop } from "@/context/workshop-context";
 import { workshopConfig } from "@/config/workshop";
 
@@ -100,6 +101,31 @@ describe("envío del resultado de fase", () => {
 });
 
 describe("componentes principales", () => {
+  it("muestra el modal solo al completar y enviar las tres fases", async () => {
+    const selectionsByPhase = Object.fromEntries(workshopConfig.phases.map((phase) => [phase.id, workshopConfig.cards.filter((card) => card.phaseId === phase.id).slice(0, workshopConfig.maxSelectionsPerPhase).map((card) => card.id)]));
+    localStorage.setItem("justicia2030:v1:team", JSON.stringify({ schemaVersion: 3, sessionId: "123e4567-e89b-42d3-a456-426614174000", selectionsByPhase, collectiveId: workshopConfig.collectives[0].id }));
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true });
+    vi.stubGlobal("fetch", fetchMock);
+    const user = userEvent.setup();
+    render(<WorkshopProvider scope="team"><TeamSummary /></WorkshopProvider>);
+
+    const sendButtons = await screen.findAllByRole("button", { name: "Enviar resultados" });
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    await user.click(sendButtons[0]);
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+    await user.click(sendButtons[1]);
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+
+    await user.click(sendButtons[2]);
+    expect(await screen.findByRole("dialog", { name: "Resultado generado correctamente" })).toBeInTheDocument();
+    expect(screen.getByText("Podrás verlo al final de la actividad.")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Fases del workshop" })).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Volver a repetir la actividad" }));
+    expect(await screen.findByRole("heading", { name: "Selecciona vuestro colectivo" })).toBeInTheDocument();
+  });
+
   it("persiste un UUID nuevo al reiniciar el equipo", async () => {
     const previousSessionId = "123e4567-e89b-42d3-a456-426614174000";
     const selectionsByPhase = Object.fromEntries(workshopConfig.phases.map((phase) => [phase.id, []]));

@@ -41,7 +41,6 @@ Completa en `.env.local` las credenciales y direcciones de Resend descritas más
 - `/team`: resumen de equipo.
 - `/team/phase/[phaseId]`: exploración de una fase.
 - `/team/phase/[phaseId]/card/[cardId]`: detalle de tarjeta.
-- `/team/justicia-2030`: resultado del equipo.
 - `/facilitator`: espacio independiente del dinamizador.
 - `POST /api/send-phase-result`: valida y envía por Resend el resultado de una fase.
 
@@ -82,7 +81,7 @@ Toda la redacción está en `src/config/prompt-template.ts`. El generador puro e
 
 La plantilla actual es un borrador funcional **pendiente de validación por el equipo de Innovation**. Puede ajustarse en su archivo central sin cambiar componentes. Si cambia el número de fases o tarjetas requeridas, también debe revisarse la redacción provisional que actualmente menciona tres fases y nueve tarjetas.
 
-El prompt solo se genera cuando cada fase tiene exactamente el máximo configurado. No se almacena ni se envía: se muestra y se copia mediante la API del portapapeles.
+En la vista del dinamizador, el prompt solo se genera cuando cada fase tiene exactamente el máximo configurado. No se almacena ni se envía: se muestra y se copia mediante la API del portapapeles. En `/team`, el modal de resultado aparece únicamente cuando las tres fases están completas y se han enviado correctamente; el equipo no accede al prompt durante la actividad.
 
 ## Envío de resultados por fase
 
