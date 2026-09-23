@@ -38,7 +38,7 @@ export function HomeActions() {
         </Link>
         {session.hasSelections ? <ResetConfirm triggerLabel="Comenzar nueva partida" message="Se eliminarán las selecciones del equipo guardadas en este navegador. No afectará al dinamizador ni a otros dispositivos. Esta acción no se puede deshacer." confirmLabel="Borrar y empezar" onConfirm={startAgain} /> : null}
       </div>
-      <Link href="/facilitator" className="inline-flex min-h-11 items-center rounded-lg px-1 font-bold text-blue-800 underline decoration-2 underline-offset-4 focus-visible:outline-3">Acceso del dinamizador</Link>
+      <Link href="/facilitator" className="inline-flex min-h-11 items-center rounded-lg px-1 font-bold text-blue-800 underline decoration-2 underline-offset-4 focus-visible:outline-3">Iniciar como dinamizador</Link>
     </div>
   );
 }

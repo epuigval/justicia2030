@@ -389,7 +389,7 @@ const cards: WorkshopCard[] = [
 
 export const workshopConfig: WorkshopConfig = {
   title: "Justicia 2030",
-  intro: "Explora las etapas del workshop, debate las propuestas y selecciona tres tarjetas por etapa para construir una visión compartida de la Justicia 2030.",
+  intro: "Explorad las etapas del workshop, debatid las propuestas y seleccionad 3 tarjetas por etapa para construir una visión compartida de la Justicia 2030.",
   maxSelectionsPerPhase: 3,
   collectives: [
   {
@@ -453,7 +453,7 @@ export const workshopConfig: WorkshopConfig = {
     "id": "justicia-actual",
     "name": "Justicia Actual",
     "shortName": "Actual",
-    "description": "Contenido de las 8 tarjetas sobre la situacion actual de la Justicia.",
+    "description": "Debatid y escoged entre temas relacionados con la situación actual.",
     "order": 1,
     "accent": "orange"
   },
@@ -461,7 +461,7 @@ export const workshopConfig: WorkshopConfig = {
     "id": "justicia-conectada",
     "name": "Justicia Conectada",
     "shortName": "Conectada",
-    "description": "Contenido de las 8 tarjetas sobre una Justicia conectada.",
+    "description": "Debatid y escoged entre temas relacionados con la tecnología y la comunicación.",
     "order": 2,
     "accent": "green"
   },
@@ -469,7 +469,7 @@ export const workshopConfig: WorkshopConfig = {
     "id": "justicia-inteligente",
     "name": "Justicia Inteligente",
     "shortName": "Inteligente",
-    "description": "Contenido de las 8 tarjetas sobre una Justicia inteligente.",
+    "description": "Debatid y escoged entre temas relacionados con la inteligencia artificial.",
     "order": 3,
     "accent": "blue"
   }

@@ -584,7 +584,7 @@ Texto introductorio recomendado:
 
 
 
-«Explora las etapas del workshop, debate las propuestas y selecciona tres tarjetas por etapa para construir una visión compartida de la Justicia 2030.»
+«Explorad las etapas del workshop, debatid las propuestas y seleccionad 3 tarjetas por etapa para construir una visión compartida de la Justicia 2030.»
 
 
 
@@ -606,7 +606,7 @@ Si existen selecciones de equipo guardadas:
 
 
 
-Mostrar siempre un acceso secundario «Acceso del dinamizador» que dirija a `/facilitator`.
+Mostrar siempre un acceso secundario «Iniciar como dinamizador» que dirija a `/facilitator`.
 
 
 

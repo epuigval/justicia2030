@@ -98,7 +98,7 @@ const categories = [
   { id: "tecnologia", name: "Tecnología", order: 3 },
   { id: "gobernanza", name: "Gobernanza", order: 4 },
 ];
-const output = `import type { WorkshopCard, WorkshopConfig } from "@/domain/types";\n\nconst cards: WorkshopCard[] = ${serialize(cards)};\n\nexport const workshopConfig: WorkshopConfig = {\n  title: "Justicia 2030",\n  intro: "Explora las etapas del workshop, debate las propuestas y selecciona tres tarjetas por etapa para construir una visión compartida de la Justicia 2030.",\n  maxSelectionsPerPhase: 3,\n  collectives: ${serialize(collectives)},\n  phases: ${serialize(phaseConfig)},\n  categories: ${serialize(categories)},\n  cards,\n};\n\nexport const storageKeys = {\n  team: "justicia2030:v1:team",\n  facilitator: "justicia2030:v1:facilitator",\n} as const;\n`;
+const output = `import type { WorkshopCard, WorkshopConfig } from "@/domain/types";\n\nconst cards: WorkshopCard[] = ${serialize(cards)};\n\nexport const workshopConfig: WorkshopConfig = {\n  title: "Justicia 2030",\n  intro: "Explorad las etapas del workshop, debatid las propuestas y seleccionad 3 tarjetas por etapa para construir una visión compartida de la Justicia 2030.",\n  maxSelectionsPerPhase: 3,\n  collectives: ${serialize(collectives)},\n  phases: ${serialize(phaseConfig)},\n  categories: ${serialize(categories)},\n  cards,\n};\n\nexport const storageKeys = {\n  team: "justicia2030:v1:team",\n  facilitator: "justicia2030:v1:facilitator",\n} as const;\n`;
 
 const destination = path.resolve("src/config/workshop.ts");
 await writeFile(destination, output, "utf8");
