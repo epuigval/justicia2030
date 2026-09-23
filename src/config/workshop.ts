@@ -395,12 +395,12 @@ export const workshopConfig: WorkshopConfig = {
   {
     "id": "perfil-1",
     "name": "Ciudadanía",
-    "description": "Soy una persona que necesita realizar un trámite o está involucrada en un procedimiento judicial. No conozco necesariamente cómo funciona la Justicia ni su lenguaje y necesito saber qué tengo que hacer, acceder fácilmente a la información y entender en qué situación se encuentra mi procedimiento. Valoro especialmente la sencillez, la accesibilidad, la rapidez y una atención clara y cercana.",
+    "description": "Persona que necesita realizar un trámite o está involucrada en un procedimiento judicial. Puede no conocer el funcionamiento de la Justicia ni su lenguaje.",
     "prioritizationCriteria": [
-      "Accesibilidad y sencillez",
+      "Accesibilidad",
       "Reducción de tiempos y trámites",
-      "Transparencia y comprensión",
-      "Calidad de la atención y confianza"
+      "Comprensión",
+      "Calidad de la atención"
     ],
     "assets": {
       "illustrationSrc": "/collectives/ciudadania/illustration.png"
@@ -408,13 +408,13 @@ export const workshopConfig: WorkshopConfig = {
   },
   {
     "id": "perfil-2",
-    "name": "Operadores Jurídicos — Abogados y Procuradores",
-    "description": "Soy un profesional que representa y acompaña a ciudadanos o empresas en su relación con la Justicia. Presento escritos, consulto expedientes, recibo notificaciones y me relaciono diariamente con distintos órganos y sistemas. Necesito trabajar de forma ágil, disponer de información actualizada y evitar duplicidades, diferencias entre sistemas y trámites innecesarios.",
+    "name": "Abogados y Procuradores",
+    "description": "Profesional que representa a ciudadanos o empresas y se relaciona de forma continua con los órganos judiciales y tribunales.",
     "prioritizationCriteria": [
-      "Agilidad en la tramitación",
-      "Acceso a información y expedientes",
-      "Interoperabilidad y reducción de duplicidades",
-      "Seguridad y homogeneidad en la relación digital"
+      "Agilidad",
+      "Acceso a información",
+      "Interoperabilidad",
+      "Seguridad"
     ],
     "assets": {
       "illustrationSrc": "/collectives/operadores-juridicos/illustration.png"
@@ -423,12 +423,12 @@ export const workshopConfig: WorkshopConfig = {
   {
     "id": "perfil-3",
     "name": "Profesionales de la Administración de Justicia",
-    "description": "Trabajo diariamente en un órgano u oficina judicial y participo directamente en la tramitación de procedimientos. Gestiono expedientes, documentación, comunicaciones, señalamientos y numerosas tareas administrativas. Necesito herramientas que simplifiquen mi trabajo, reduzcan tareas repetitivas y me permitan dedicar más tiempo a actuaciones de mayor valor.",
+    "description": "Profesional que trabaja en órganos y oficinas judiciales y gestiona diariamente expedientes y actuaciones procesales.",
     "prioritizationCriteria": [
-      "Reducción de carga de trabajo",
-      "Simplificación y automatización de tareas",
-      "Mejora de herramientas e información disponible",
-      "Impacto en la eficiencia y calidad de la tramitación"
+      "Reducción de carga",
+      "Simplificación",
+      "Mejores herramientas",
+      "Eficiencia"
     ],
     "assets": {
       "illustrationSrc": "/collectives/profesionales-justicia/illustration.png"
@@ -437,12 +437,12 @@ export const workshopConfig: WorkshopConfig = {
   {
     "id": "perfil-4",
     "name": "Fiscalía",
-    "description": "Soy fiscal e intervengo en distintos procedimientos para el ejercicio de las funciones que tengo atribuidas. Necesito analizar expedientes, acceder a información procedente de diferentes fuentes y coordinar mis actuaciones con órganos judiciales y otros organismos. Valoro especialmente disponer de información completa, fiable y accesible y de herramientas que agilicen el análisis y las actuaciones.",
+    "description": "Profesional que analiza expedientes, interviene en procedimientos y se coordina con múltiples organismos.",
     "prioritizationCriteria": [
-      "Acceso a información completa y fiable",
-      "Agilidad de las actuaciones",
-      "Interoperabilidad y coordinación",
-      "Apoyo al análisis y toma de decisiones"
+      "Calidad de la información",
+      "Agilidad",
+      "Coordinación",
+      "Apoyo al análisis"
     ],
     "assets": {
       "iconSrc": "/collectives/fiscalia/icon.svg",
@@ -451,13 +451,13 @@ export const workshopConfig: WorkshopConfig = {
   },
   {
     "id": "perfil-5",
-    "name": "Otros operadores jurídicos — Peritos, Graduados Sociales, SSJJ de Ayuntamientos…",
-    "description": "Soy un profesional que interviene o colabora con la Justicia desde fuera del órgano judicial. Aporto informes, documentación, conocimiento especializado o participo en determinadas actuaciones y necesito relacionarme con diferentes órganos y sistemas. Busco una relación sencilla, ágil y segura con la Justicia, con menos duplicidades y mejores mecanismos para intercambiar información.",
+    "name": "Otros operadores jurídicos (Mediadores, Graduados Sociales, Peritos, SSJJ de Ayuntamientos…)",
+    "description": "Profesional que interviene, colabora o presta apoyo especializado en el ámbito de la Justicia, participando en la resolución de conflictos, la aportación de conocimiento técnico o la relación con órganos judiciales y otras Administraciones.",
     "prioritizationCriteria": [
-      "Facilidad de relación con la Justicia",
-      "Intercambio ágil de información y documentación",
-      "Interoperabilidad y reducción de duplicidades",
-      "Accesibilidad y seguridad de los servicios digitales"
+      "Facilidad de relación",
+      "Coordinación entre actores",
+      "Intercambio de información",
+      "Interoperabilidad y seguridad"
     ],
     "assets": {
       "illustrationSrc": "/collectives/otros-operadores/illustration.png"
