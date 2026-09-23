@@ -17,11 +17,17 @@ export interface WorkshopCategory {
   order: number;
 }
 
+export interface WorkshopCollectiveAssets {
+  iconSrc?: string;
+  illustrationSrc?: string;
+}
+
 export interface WorkshopCollective {
   id: string;
   name: string;
   description: string;
   prioritizationCriteria: string[];
+  assets?: WorkshopCollectiveAssets;
 }
 
 export interface WorkshopCard {

@@ -123,7 +123,7 @@ describe("componentes principales", () => {
     expect(screen.getByRole("heading", { name: "Fases del workshop" })).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "Volver a repetir la actividad" }));
-    expect(await screen.findByRole("heading", { name: "Selecciona vuestro colectivo" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Seleccionad vuestro colectivo" })).toBeInTheDocument();
   });
 
   it("persiste un UUID nuevo al reiniciar el equipo", async () => {
@@ -183,14 +183,19 @@ describe("componentes principales", () => {
 
   it("obliga a elegir un colectivo y muestra su descripción", async () => {
     const user = userEvent.setup();
-    render(<WorkshopProvider scope="team"><CollectiveSelector /></WorkshopProvider>);
-    await screen.findByLabelText("Equipo o colectivo");
+    const { container } = render(<WorkshopProvider scope="team"><CollectiveSelector /></WorkshopProvider>);
+    await screen.findByLabelText("Seleccionad un colectivo");
     const start = screen.getByRole("button", { name: "Comenzar partida" });
     expect(start).toBeDisabled();
     const collective = workshopConfig.collectives[0];
-    await user.selectOptions(screen.getByLabelText("Equipo o colectivo"), collective.id);
+    await user.selectOptions(screen.getByLabelText("Seleccionad un colectivo"), collective.id);
     expect(screen.getByText(collective.description)).toBeInTheDocument();
     expect(start).toBeEnabled();
+
+    const fiscalia = workshopConfig.collectives.find((item) => item.name === "Fiscalía")!;
+    await user.selectOptions(screen.getByLabelText("Seleccionad un colectivo"), fiscalia.id);
+    expect(container.querySelector('img[src="/collectives/fiscalia/icon.svg"]')).toBeInTheDocument();
+    expect(container.querySelector('img[src*="illustration"]')).toBeInTheDocument();
   });
 
   it("muestra el detalle como diálogo y permite cerrarlo con Escape", async () => {

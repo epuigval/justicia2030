@@ -401,7 +401,10 @@ export const workshopConfig: WorkshopConfig = {
       "Reducción de tiempos y trámites",
       "Transparencia y comprensión",
       "Calidad de la atención y confianza"
-    ]
+    ],
+    "assets": {
+      "illustrationSrc": "/collectives/ciudadania/illustration.png"
+    }
   },
   {
     "id": "perfil-2",
@@ -412,7 +415,10 @@ export const workshopConfig: WorkshopConfig = {
       "Acceso a información y expedientes",
       "Interoperabilidad y reducción de duplicidades",
       "Seguridad y homogeneidad en la relación digital"
-    ]
+    ],
+    "assets": {
+      "illustrationSrc": "/collectives/operadores-juridicos/illustration.png"
+    }
   },
   {
     "id": "perfil-3",
@@ -423,7 +429,10 @@ export const workshopConfig: WorkshopConfig = {
       "Simplificación y automatización de tareas",
       "Mejora de herramientas e información disponible",
       "Impacto en la eficiencia y calidad de la tramitación"
-    ]
+    ],
+    "assets": {
+      "illustrationSrc": "/collectives/profesionales-justicia/illustration.png"
+    }
   },
   {
     "id": "perfil-4",
@@ -434,7 +443,11 @@ export const workshopConfig: WorkshopConfig = {
       "Agilidad de las actuaciones",
       "Interoperabilidad y coordinación",
       "Apoyo al análisis y toma de decisiones"
-    ]
+    ],
+    "assets": {
+      "iconSrc": "/collectives/fiscalia/icon.svg",
+      "illustrationSrc": "/collectives/fiscalia/illustration.png"
+    }
   },
   {
     "id": "perfil-5",
@@ -445,7 +458,10 @@ export const workshopConfig: WorkshopConfig = {
       "Intercambio ágil de información y documentación",
       "Interoperabilidad y reducción de duplicidades",
       "Accesibilidad y seguridad de los servicios digitales"
-    ]
+    ],
+    "assets": {
+      "illustrationSrc": "/collectives/otros-operadores/illustration.png"
+    }
   }
 ],
   phases: [
