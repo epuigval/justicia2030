@@ -18,3 +18,10 @@ Thumbs.db
 *.log
 .eslintcache
 .vercel
+
+# Skills & Agents folders
+.clinerules
+.cursor
+.github
+.opencode
+.windsurf
