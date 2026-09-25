@@ -226,6 +226,16 @@ describe("componentes principales", () => {
     expect(onClose).toHaveBeenCalledOnce();
   });
 
+  it("oculta la selección al abrir el detalle de una fase enviada", async () => {
+    const phase = workshopConfig.phases[0];
+    const selectionsByPhase = Object.fromEntries(workshopConfig.phases.map((configuredPhase) => [configuredPhase.id, []]));
+    localStorage.setItem("justicia2030:v1:team", JSON.stringify({ schemaVersion: 4, sessionId: "123e4567-e89b-42d3-a456-426614174000", selectionsByPhase, collectiveId: workshopConfig.collectives[0].id, sentPhaseIds: [phase.id] }));
+
+    render(<WorkshopProvider scope="team"><CardDetailModal card={workshopConfig.cards.find((card) => card.phaseId === phase.id)!} onClose={vi.fn()} /></WorkshopProvider>);
+
+    await waitFor(() => expect(screen.queryByRole("button", { name: "Seleccionar tarjeta" })).not.toBeInTheDocument());
+  });
+
   it("permite al dinamizador seleccionar más de tres tarjetas", async () => {
     const user = userEvent.setup();
     const phase = workshopConfig.phases[0];
