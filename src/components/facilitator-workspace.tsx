@@ -44,5 +44,5 @@ function FacilitatorContent() {
 }
 
 export function FacilitatorWorkspace() {
-  return <WorkshopProvider scope="facilitator"><AppShell roleLabel="Dinamizador"><FacilitatorContent /></AppShell></WorkshopProvider>;
+  return <WorkshopProvider scope="facilitator"><AppShell><FacilitatorContent /></AppShell></WorkshopProvider>;
 }

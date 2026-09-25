@@ -2,7 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import type { ReactNode } from "react";
 
-export function AppShell({ children, roleLabel }: { children: ReactNode; roleLabel?: string }) {
+export function AppShell({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-screen flex-col bg-slate-50 text-slate-950">
       <header className="border-b border-[#d6d6d6] bg-white">
@@ -13,7 +13,7 @@ export function AppShell({ children, roleLabel }: { children: ReactNode; roleLab
             </span>
             <span className="text-2xl font-black leading-8 text-[#0b1d3a]">JUSTICIA<span className="text-[#114dcd]">2030</span></span>
           </Link>
-          {roleLabel ? <span className="ml-auto rounded-full bg-blue-50 px-4 py-2 text-sm font-bold text-blue-900">{roleLabel}</span> : null}
+          <img src="/nttdata-logo.svg" alt="NTT DATA" className="ml-auto h-8 w-auto" />
         </div>
       </header>
       <div className="flex-1">{children}</div>
