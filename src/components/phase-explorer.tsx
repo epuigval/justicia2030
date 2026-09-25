@@ -27,27 +27,28 @@ export function PhaseExplorer({ phaseId, detailHref, onOpenDetail }: {
   const { scope, sessionId, collectiveId, sentPhaseIds, selectionsByPhase, toggle, isSelectionSent, markSelectionSent } = useWorkshop();
   const phase = getPhase(workshopConfig, phaseId);
   if (!phase) return null;
+  const currentPhase = phase;
   const selectedIds = selectionsByPhase[phaseId] ?? [];
   const cards = filterCards(workshopConfig, phaseId, activeFilter);
   const atLimit = scope === "team" && selectedIds.length >= workshopConfig.maxSelectionsPerPhase;
-  const nextPhase = orderedPhases(workshopConfig)[phase.order];
-  const phaseSent = isSelectionSent(phase.id);
-  const workshopComplete = orderedPhases(workshopConfig).every((candidate) => candidate.id === phase.id || sentPhaseIds.includes(candidate.id));
+  const nextPhase = orderedPhases(workshopConfig)[currentPhase.order];
+  const phaseSent = isSelectionSent(currentPhase.id);
+  const workshopComplete = orderedPhases(workshopConfig).every((candidate) => candidate.id === currentPhase.id || sentPhaseIds.includes(candidate.id));
 
   function handleSent() {
-    markSelectionSent(phase.id);
+    markSelectionSent(currentPhase.id);
     setShowSubmissionModal(true);
   }
 
   function continueAfterSubmission() {
-    window.location.assign(workshopComplete ? "/team" : `/team/phase/${nextPhase?.id ?? phase.id}`);
+    window.location.assign(workshopComplete ? "/team" : `/team/phase/${nextPhase?.id ?? currentPhase.id}`);
   }
 
   return (
     <section aria-labelledby={`phase-${phaseId}`}>
       <div className="mb-6">
         <p className="text-sm font-bold uppercase tracking-[0.6px] text-[#114dcd]">Selección de temas</p>
-        <h1 id={`phase-${phaseId}`} className={`mt-3 flex h-[62px] items-center rounded-xl border-l-4 pl-4 text-[32px] font-bold leading-9 tracking-[-0.8px] text-[#0a0a0a] ${accentStyles[phase.accent]}`}>FASE {phase.order} - {phase.name}</h1>
+        <h1 id={`phase-${phaseId}`} className={`mt-3 flex h-[62px] items-center rounded-xl border-l-4 pl-4 text-[32px] font-bold leading-9 tracking-[-0.8px] text-[#0a0a0a] ${accentStyles[currentPhase.accent]}`}>FASE {currentPhase.order} - {currentPhase.name}</h1>
         <p className="mt-3 text-sm leading-6 text-[#0a0a0a]">Debatid sobre los siguientes temas y seleccionad las {workshopConfig.maxSelectionsPerPhase} tarjetas que creáis prioritarias desde el punto de vista de vuestro colectivo.</p>
       </div>
       <CategoryFilters config={workshopConfig} active={activeFilter} onChange={setActiveFilter} />

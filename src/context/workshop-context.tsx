@@ -47,7 +47,7 @@ function reducer(state: WorkshopState, action: Action): WorkshopState {
 interface WorkshopContextValue extends WorkshopState {
   scope: WorkshopScope;
   toggle: (phaseId: PhaseId, cardId: CardId) => void;
-  isSelectionSent: (phaseId: PhaseId, cardIds: CardId[]) => boolean;
+  isSelectionSent: (phaseId: PhaseId) => boolean;
   markSelectionSent: (phaseId: PhaseId) => void;
   selectCollective: (collectiveId: string) => void;
   reset: () => void;
