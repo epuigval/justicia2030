@@ -246,7 +246,7 @@ describe("componentes principales", () => {
 
     const fiscalia = workshopConfig.collectives.find((item) => item.name === "Fiscalía")!;
     await user.selectOptions(screen.getByLabelText("Seleccionad un colectivo"), fiscalia.id);
-    expect(container.querySelector('img[src="/collectives/fiscalia/icon.svg"]')).toBeInTheDocument();
+    expect(container.querySelector('img[src="/collectives/fiscalia/icon.svg"]')).not.toBeInTheDocument();
     expect(container.querySelector('img[src*="illustration"]')).toBeInTheDocument();
   });
 

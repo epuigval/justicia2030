@@ -445,7 +445,6 @@ export const workshopConfig: WorkshopConfig = {
       "Apoyo al análisis"
     ],
     "assets": {
-      "iconSrc": "/collectives/fiscalia/icon.svg",
       "illustrationSrc": "/collectives/fiscalia/illustration.png"
     }
   },

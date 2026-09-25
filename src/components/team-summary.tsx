@@ -25,7 +25,6 @@ export function TeamSummary() {
   if (!collective) return <CollectiveSelector />;
 
   const phases = orderedPhases(workshopConfig);
-  const collectiveIconSrc = collective.assets?.iconSrc ?? "/collectives/fiscalia/icon.svg";
 
   return (
     <main className="mx-auto w-full max-w-[var(--container-7xl)] px-3 py-8 sm:px-6">
@@ -41,7 +40,7 @@ export function TeamSummary() {
         </div>
         <section className="mt-8 border-t border-slate-200 pt-6" aria-label="Colectivo seleccionado">
           <div className="flex items-center gap-2">
-            <span aria-hidden="true" className="size-6 shrink-0 bg-[#114dcd] [mask-image:var(--collective-icon)] [mask-position:center] [mask-repeat:no-repeat] [mask-size:contain]" style={{ "--collective-icon": `url('${collectiveIconSrc}')` } as React.CSSProperties} />
+            {collective.assets?.iconSrc ? <span aria-hidden="true" className="size-6 shrink-0 bg-[#114dcd] [mask-image:var(--collective-icon)] [mask-position:center] [mask-repeat:no-repeat] [mask-size:contain]" style={{ "--collective-icon": `url('${collective.assets.iconSrc}')` } as React.CSSProperties} /> : null}
             <h2 className="text-sm font-extrabold uppercase tracking-[0.3px] text-[#114dcd]">{collective.name}</h2>
           </div>
           <p className="mt-2 max-w-[1024px] text-sm leading-5 text-[#0a0a0a]">{collective.description}</p>
