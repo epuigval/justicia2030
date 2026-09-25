@@ -27,14 +27,14 @@ export function SelectionTray({ config, phaseId, selectedIds, unlimited = false,
             if (!card || card.phaseId !== phaseId) return null;
             return (
               <li key={id} className="flex flex-col gap-[5px] rounded-xl border border-[rgba(226,232,240,0.9)] bg-white p-[15px] shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
-                <div className="flex items-start justify-between"><span className={`rounded px-2 py-0.5 text-[10px] font-bold uppercase leading-[15px] tracking-[0.5px] text-[#0a0a0a] ${categoryStyles[card.categoryId]}`}>{category?.name}</span><button type="button" aria-label={`Quitar ${card.title}`} className="flex size-7 shrink-0 items-center justify-center rounded-md p-1 focus-visible:outline-3" onClick={() => onRemove(id)}><img src="/icons/delete.svg" alt="" className="size-5" /></button></div>
+                <div className="flex items-start justify-between"><span className={`rounded px-2 py-0.5 text-[10px] font-bold uppercase leading-[15px] tracking-[0.5px] text-[#0a0a0a] ${categoryStyles[card.categoryId]}`}>{category?.name}</span>{!selectionAlreadySent ? <button type="button" aria-label={`Quitar ${card.title}`} className="flex size-7 shrink-0 items-center justify-center rounded-md p-1 focus-visible:outline-3" onClick={() => onRemove(id)}><img src="/icons/delete.svg" alt="" className="size-5" /></button> : null}</div>
                 <p className="text-xs font-bold leading-[16.5px] text-[#0a0a0a]">{card.title}</p>
               </li>
             );
           })}
         </ul>
       )}
-      {!unlimited && sessionId && collectiveId ? <div className="border-t border-[rgba(208,226,255,0.8)] pt-[17px]"><PhaseResultSender sessionId={sessionId} phaseId={phaseId} collectiveId={collectiveId} selectedCardIds={selectedIds} selectionAlreadySent={selectionAlreadySent} onSent={onSent} buttonLabel="Enviar y continuar" disabled={!complete} renderWhenIncomplete /><p className="mt-3 text-center text-xs font-medium leading-[16.5px] text-[#565656]">Se enviará vuestra selección y pasaréis a la siguiente fase.</p></div> : null}</>}
+      {!unlimited && sessionId && collectiveId && !selectionAlreadySent ? <div className="border-t border-[rgba(208,226,255,0.8)] pt-[17px]"><PhaseResultSender sessionId={sessionId} phaseId={phaseId} collectiveId={collectiveId} selectedCardIds={selectedIds} onSent={onSent} buttonLabel="Enviar y continuar" disabled={!complete} renderWhenIncomplete /><p className="mt-3 text-center text-xs font-medium leading-[16.5px] text-[#565656]">Se enviará vuestra selección y pasaréis a la siguiente fase.</p></div> : null}</>}
     </aside>
   );
 }

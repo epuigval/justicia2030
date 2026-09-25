@@ -1,4 +1,4 @@
-import type { PersistedWorkshopStateV3, SelectionsByPhase, WorkshopConfig, WorkshopSessionState } from "@/domain/types";
+import type { PersistedWorkshopStateV4, SelectionsByPhase, WorkshopConfig, WorkshopSessionState } from "@/domain/types";
 import { createEmptySelections } from "@/domain/selections";
 import { createSessionId, isValidSessionId } from "@/domain/session";
 
@@ -11,26 +11,29 @@ export interface WorkshopStorageAdapter {
 }
 
 function emptySession(config: WorkshopConfig): WorkshopSessionState {
-  return { sessionId: createSessionId(), selectionsByPhase: createEmptySelections(config), collectiveId: null };
+  return { sessionId: createSessionId(), selectionsByPhase: createEmptySelections(config), collectiveId: null, sentPhaseIds: [] };
 }
 
 export function parsePersistedState(value: string, config: WorkshopConfig): StorageResult<WorkshopSessionState> {
   try {
     const parsed: unknown = JSON.parse(value);
     if (!parsed || typeof parsed !== "object") throw new Error("shape");
-    const candidate = parsed as { schemaVersion?: unknown; sessionId?: unknown; selectionsByPhase?: SelectionsByPhase; collectiveId?: unknown };
-    if ((candidate.schemaVersion !== 1 && candidate.schemaVersion !== 2 && candidate.schemaVersion !== 3) || !candidate.selectionsByPhase || typeof candidate.selectionsByPhase !== "object") throw new Error("version");
+    const candidate = parsed as { schemaVersion?: unknown; sessionId?: unknown; selectionsByPhase?: SelectionsByPhase; collectiveId?: unknown; sentPhaseIds?: unknown };
+    if ((candidate.schemaVersion !== 1 && candidate.schemaVersion !== 2 && candidate.schemaVersion !== 3 && candidate.schemaVersion !== 4) || !candidate.selectionsByPhase || typeof candidate.selectionsByPhase !== "object") throw new Error("version");
     const entries = config.phases.map((phase) => {
       const ids = candidate.selectionsByPhase?.[phase.id];
       if (!Array.isArray(ids) || ids.some((id) => typeof id !== "string")) throw new Error("phase");
       return [phase.id, ids] as const;
     });
-    const collectiveId = (candidate.schemaVersion === 2 || candidate.schemaVersion === 3) && typeof candidate.collectiveId === "string" && config.collectives.some((item) => item.id === candidate.collectiveId)
+    const collectiveId = (candidate.schemaVersion === 2 || candidate.schemaVersion === 3 || candidate.schemaVersion === 4) && typeof candidate.collectiveId === "string" && config.collectives.some((item) => item.id === candidate.collectiveId)
       ? candidate.collectiveId
       : null;
-    if (candidate.schemaVersion === 3 && !isValidSessionId(candidate.sessionId)) throw new Error("session");
-    const sessionId = candidate.schemaVersion === 3 ? candidate.sessionId as string : createSessionId();
-    return { ok: true, value: { sessionId, selectionsByPhase: Object.fromEntries(entries), collectiveId } };
+    if ((candidate.schemaVersion === 3 || candidate.schemaVersion === 4) && !isValidSessionId(candidate.sessionId)) throw new Error("session");
+    const sessionId = candidate.schemaVersion === 3 || candidate.schemaVersion === 4 ? candidate.sessionId as string : createSessionId();
+    const sentPhaseIds = candidate.schemaVersion === 4 && Array.isArray(candidate.sentPhaseIds) && candidate.sentPhaseIds.every((id) => typeof id === "string" && config.phases.some((phase) => phase.id === id))
+      ? [...new Set(candidate.sentPhaseIds)]
+      : [];
+    return { ok: true, value: { sessionId, selectionsByPhase: Object.fromEntries(entries), collectiveId, sentPhaseIds } };
   } catch {
     return { ok: false, value: emptySession(config), message: "No se pudieron recuperar las selecciones guardadas. Se ha iniciado un estado vacío." };
   }
@@ -48,7 +51,7 @@ export function createStorageAdapter(storage: Storage, key: string): WorkshopSto
     },
     write(state) {
       try {
-        storage.setItem(key, JSON.stringify({ schemaVersion: 3, ...state } satisfies PersistedWorkshopStateV3));
+        storage.setItem(key, JSON.stringify({ schemaVersion: 4, ...state } satisfies PersistedWorkshopStateV4));
         return { ok: true, value: null };
       } catch {
         return { ok: false, value: null, message: "No se pudieron guardar los cambios. Puedes continuar, pero podrían perderse al recargar." };

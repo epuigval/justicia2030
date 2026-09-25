@@ -13,7 +13,7 @@ describe("persistencia V3", () => {
     const selectionsByPhase = createEmptySelections(workshopConfig);
     selectionsByPhase[workshopConfig.phases[0].id] = [workshopConfig.cards[0].id];
     const adapter = createStorageAdapter(storage, storageKeys.team);
-    const session = { sessionId: SESSION_ID, selectionsByPhase, collectiveId: workshopConfig.collectives[0].id };
+    const session = { sessionId: SESSION_ID, selectionsByPhase, collectiveId: workshopConfig.collectives[0].id, sentPhaseIds: [workshopConfig.phases[0].id] };
     expect(adapter.write(session).ok).toBe(true);
     expect(adapter.read(workshopConfig)).toEqual({ ok: true, value: session });
   });
@@ -90,9 +90,9 @@ describe("persistencia V3", () => {
     expect(createStorageAdapter(storage, storageKeys.team).read(workshopConfig).ok).toBe(false);
   });
 
-  it("persiste únicamente versión, sesión, selecciones y colectivo", () => {
+  it("persiste versión, sesión, selecciones, colectivo y fases enviadas", () => {
     localStorage.clear();
-    createStorageAdapter(localStorage, storageKeys.team).write({ sessionId: SESSION_ID, selectionsByPhase: createEmptySelections(workshopConfig), collectiveId: null });
-    expect(Object.keys(JSON.parse(localStorage.getItem(storageKeys.team)!))).toEqual(["schemaVersion", "sessionId", "selectionsByPhase", "collectiveId"]);
+    createStorageAdapter(localStorage, storageKeys.team).write({ sessionId: SESSION_ID, selectionsByPhase: createEmptySelections(workshopConfig), collectiveId: null, sentPhaseIds: [] });
+    expect(Object.keys(JSON.parse(localStorage.getItem(storageKeys.team)!))).toEqual(["schemaVersion", "sessionId", "selectionsByPhase", "collectiveId", "sentPhaseIds"]);
   });
 });

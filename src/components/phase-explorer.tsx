@@ -8,6 +8,7 @@ import type { CategoryId, WorkshopCard } from "@/domain/types";
 import { CardTile } from "./card-tile";
 import { CategoryFilters } from "./category-filters";
 import { SelectionTray } from "./selection-tray";
+import { PhaseSubmissionModal } from "./phase-submission-modal";
 
 const accentStyles = {
   orange: "border-[#e26600]",
@@ -22,13 +23,25 @@ export function PhaseExplorer({ phaseId, detailHref, onOpenDetail }: {
   onOpenDetail?: (card: WorkshopCard) => void;
 }) {
   const [activeFilter, setActiveFilter] = useState<CategoryId | "all">("all");
-  const { scope, sessionId, collectiveId, selectionsByPhase, toggle, isSelectionSent } = useWorkshop();
+  const [showSubmissionModal, setShowSubmissionModal] = useState(false);
+  const { scope, sessionId, collectiveId, sentPhaseIds, selectionsByPhase, toggle, isSelectionSent, markSelectionSent } = useWorkshop();
   const phase = getPhase(workshopConfig, phaseId);
   if (!phase) return null;
   const selectedIds = selectionsByPhase[phaseId] ?? [];
   const cards = filterCards(workshopConfig, phaseId, activeFilter);
   const atLimit = scope === "team" && selectedIds.length >= workshopConfig.maxSelectionsPerPhase;
   const nextPhase = orderedPhases(workshopConfig)[phase.order];
+  const phaseSent = isSelectionSent(phase.id);
+  const workshopComplete = orderedPhases(workshopConfig).every((candidate) => candidate.id === phase.id || sentPhaseIds.includes(candidate.id));
+
+  function handleSent() {
+    markSelectionSent(phase.id);
+    setShowSubmissionModal(true);
+  }
+
+  function continueAfterSubmission() {
+    window.location.assign(workshopComplete ? "/team" : `/team/phase/${nextPhase?.id ?? phase.id}`);
+  }
 
   return (
     <section aria-labelledby={`phase-${phaseId}`}>
@@ -54,6 +67,7 @@ export function PhaseExplorer({ phaseId, detailHref, onOpenDetail }: {
                   card={card}
                   selected={selectedIds.includes(card.id)}
                   atLimit={atLimit}
+                  readOnly={phaseSent}
                   onToggle={() => toggle(phaseId, card.id)}
                   detailHref={detailHref?.(card)}
                   onOpenDetail={() => onOpenDetail?.(card)}
@@ -62,8 +76,9 @@ export function PhaseExplorer({ phaseId, detailHref, onOpenDetail }: {
             </div>
           )}
         </div>
-        <SelectionTray config={workshopConfig} phaseId={phaseId} selectedIds={selectedIds} unlimited={scope === "facilitator"} sessionId={sessionId} collectiveId={collectiveId} selectionAlreadySent={isSelectionSent(phase.id, selectedIds)} onSent={() => { window.location.assign(nextPhase ? `/team/phase/${nextPhase.id}` : "/team"); }} onRemove={(cardId) => toggle(phaseId, cardId)} />
+        <SelectionTray config={workshopConfig} phaseId={phaseId} selectedIds={selectedIds} unlimited={scope === "facilitator"} sessionId={sessionId} collectiveId={collectiveId} selectionAlreadySent={phaseSent} onSent={handleSent} onRemove={(cardId) => toggle(phaseId, cardId)} />
       </div>
+      {showSubmissionModal ? <PhaseSubmissionModal phase={phase} workshopComplete={workshopComplete} onContinue={continueAfterSubmission} /> : null}
     </section>
   );
 }

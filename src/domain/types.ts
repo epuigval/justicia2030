@@ -59,6 +59,7 @@ export interface WorkshopSessionState {
   sessionId: string;
   selectionsByPhase: SelectionsByPhase;
   collectiveId: string | null;
+  sentPhaseIds: PhaseId[];
 }
 
 export interface PersistedWorkshopStateV1 {
@@ -77,6 +78,10 @@ export interface PersistedWorkshopStateV3 {
   sessionId: string;
   selectionsByPhase: SelectionsByPhase;
   collectiveId: string | null;
+}
+
+export interface PersistedWorkshopStateV4 extends WorkshopSessionState {
+  schemaVersion: 4;
 }
 
 export type WorkshopScope = "team" | "facilitator";

@@ -101,12 +101,41 @@ describe("envío del resultado de fase", () => {
 });
 
 describe("componentes principales", () => {
+  it("confirma el envío de una fase y la deja en modo lectura", async () => {
+    const phase = workshopConfig.phases[0];
+    const selectionsByPhase = Object.fromEntries(workshopConfig.phases.map((configuredPhase) => [configuredPhase.id, configuredPhase.id === phase.id ? workshopConfig.cards.filter((card) => card.phaseId === phase.id).slice(0, 3).map((card) => card.id) : []]));
+    localStorage.setItem("justicia2030:v1:team", JSON.stringify({ schemaVersion: 4, sessionId: "123e4567-e89b-42d3-a456-426614174000", selectionsByPhase, collectiveId: workshopConfig.collectives[0].id, sentPhaseIds: [] }));
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true }));
+    const user = userEvent.setup();
+    render(<WorkshopProvider scope="team"><PhaseExplorer phaseId={phase.id} onOpenDetail={vi.fn()} /></WorkshopProvider>);
+
+    await user.click(await screen.findByRole("button", { name: "Enviar y continuar" }));
+    expect(await screen.findByRole("dialog", { name: `¡Fase ${phase.order} enviada correctamente!` })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Enviar y continuar" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Quitar" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Seleccionar" })).not.toBeInTheDocument();
+  });
+
+  it("muestra la confirmación final al enviar la última fase", async () => {
+    const phase = workshopConfig.phases.at(-1)!;
+    const selectionsByPhase = Object.fromEntries(workshopConfig.phases.map((configuredPhase) => [configuredPhase.id, configuredPhase.id === phase.id ? workshopConfig.cards.filter((card) => card.phaseId === phase.id).slice(0, 3).map((card) => card.id) : []]));
+    localStorage.setItem("justicia2030:v1:team", JSON.stringify({ schemaVersion: 4, sessionId: "123e4567-e89b-42d3-a456-426614174000", selectionsByPhase, collectiveId: workshopConfig.collectives[0].id, sentPhaseIds: workshopConfig.phases.slice(0, -1).map((configuredPhase) => configuredPhase.id) }));
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true }));
+    const user = userEvent.setup();
+    render(<WorkshopProvider scope="team"><PhaseExplorer phaseId={phase.id} onOpenDetail={vi.fn()} /></WorkshopProvider>);
+
+    await user.click(await screen.findByRole("button", { name: "Enviar y continuar" }));
+    expect(await screen.findByRole("dialog", { name: "¡Enhorabuena! Ya habéis completado todas las fases." })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Aceptar" })).toBeInTheDocument();
+  });
+
   it("muestra tarjetas de fase sin controles de envío", async () => {
     const selectionsByPhase = Object.fromEntries(workshopConfig.phases.map((phase) => [phase.id, workshopConfig.cards.filter((card) => card.phaseId === phase.id).slice(0, workshopConfig.maxSelectionsPerPhase).map((card) => card.id)]));
     localStorage.setItem("justicia2030:v1:team", JSON.stringify({ schemaVersion: 3, sessionId: "123e4567-e89b-42d3-a456-426614174000", selectionsByPhase, collectiveId: workshopConfig.collectives[0].id }));
     render(<WorkshopProvider scope="team"><TeamSummary /></WorkshopProvider>);
 
     expect(await screen.findAllByRole("link", { name: "Ver tarjetas" })).toHaveLength(workshopConfig.phases.length);
+    expect(screen.getByRole("list", { name: `Tarjetas seleccionadas de ${workshopConfig.phases[0].name}` })).toBeInTheDocument();
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Enviar resultados" })).not.toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Fases del workshop" })).toBeInTheDocument();
@@ -123,9 +152,10 @@ describe("componentes principales", () => {
     await user.click(screen.getByRole("button", { name: "Reiniciar sesión de prueba" }));
     await waitFor(() => {
       const persisted = JSON.parse(localStorage.getItem("justicia2030:v1:team")!);
-      expect(persisted.schemaVersion).toBe(3);
+      expect(persisted.schemaVersion).toBe(4);
       expect(persisted.sessionId).not.toBe(previousSessionId);
       expect(persisted.sessionId).toMatch(/^[0-9a-f-]{36}$/i);
+      expect(persisted.sentPhaseIds).toEqual([]);
     });
   });
 
