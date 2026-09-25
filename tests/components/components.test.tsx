@@ -130,6 +130,7 @@ describe("componentes principales", () => {
   });
 
   it("muestra tarjetas de fase sin controles de envío", async () => {
+    const user = userEvent.setup();
     const selectionsByPhase = Object.fromEntries(workshopConfig.phases.map((phase) => [phase.id, workshopConfig.cards.filter((card) => card.phaseId === phase.id).slice(0, workshopConfig.maxSelectionsPerPhase).map((card) => card.id)]));
     localStorage.setItem("justicia2030:v1:team", JSON.stringify({ schemaVersion: 3, sessionId: "123e4567-e89b-42d3-a456-426614174000", selectionsByPhase, collectiveId: workshopConfig.collectives[0].id }));
     render(<WorkshopProvider scope="team"><TeamSummary /></WorkshopProvider>);
@@ -139,6 +140,9 @@ describe("componentes principales", () => {
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Enviar resultados" })).not.toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Fases del workshop" })).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Abandonar partida" }));
+    expect(screen.getByRole("alertdialog", { name: "Nueva partida" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Empezar nueva partida" })).toBeInTheDocument();
   });
 
   it("persiste un UUID nuevo al reiniciar el equipo", async () => {

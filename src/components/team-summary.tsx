@@ -7,6 +7,7 @@ import { getCard, orderedPhases } from "@/domain/catalog";
 import { CollectiveSelector } from "./collective-selector";
 import { LoadingState } from "./loading-state";
 import { StorageNotice } from "./notice";
+import { ResetConfirm } from "./reset-confirm";
 
 const phaseCardStyles = {
   orange: { border: "border-[#e26600]", accent: "bg-[#e26600]", check: "bg-[#e26600]" },
@@ -16,7 +17,7 @@ const phaseCardStyles = {
 } as const;
 
 export function TeamSummary() {
-  const { hydrated, selectionsByPhase, collectiveId } = useWorkshop();
+  const { hydrated, selectionsByPhase, collectiveId, reset } = useWorkshop();
 
   if (!hydrated) return <LoadingState />;
   const collective = workshopConfig.collectives.find((item) => item.id === collectiveId);
@@ -58,6 +59,9 @@ export function TeamSummary() {
           })}
           </div>
         </section>
+        <div className="mt-8">
+          <ResetConfirm triggerLabel="Abandonar partida" title="Nueva partida" message="Al cambiar de colectivo, es necesario iniciar la partida de nuevo. Las tarjetas que tuvierais seleccionadas para el colectivo anterior se borrarán." confirmLabel="Empezar nueva partida" onConfirm={reset} modal triggerClassName="rounded-lg border border-[#114dcd] bg-white px-4 py-2 text-sm font-semibold leading-5 text-[#114dcd] shadow-[0_1px_1px_rgba(0,0,0,0.05)] focus-visible:outline-3" />
+        </div>
       </div>
     </main>
   );
