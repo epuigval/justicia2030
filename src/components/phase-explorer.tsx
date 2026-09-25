@@ -17,10 +17,12 @@ const accentStyles = {
   violet: "border-[#072056] bg-[rgba(7,32,86,0.10)]",
 } as const;
 
-export function PhaseExplorer({ phaseId, detailHref, onOpenDetail }: {
+export function PhaseExplorer({ phaseId, detailHref, onOpenDetail, onPreviousPhase, onNextPhase }: {
   phaseId: string;
   detailHref?: (card: WorkshopCard) => string;
   onOpenDetail?: (card: WorkshopCard) => void;
+  onPreviousPhase?: () => void;
+  onNextPhase?: () => void;
 }) {
   const [activeFilter, setActiveFilter] = useState<CategoryId | "all">("all");
   const [showSubmissionModal, setShowSubmissionModal] = useState(false);
@@ -49,7 +51,7 @@ export function PhaseExplorer({ phaseId, detailHref, onOpenDetail }: {
       <div className="mb-6">
         <p className="text-sm font-bold uppercase tracking-[0.6px] text-[#114dcd]">Selección de temas</p>
         <h1 id={`phase-${phaseId}`} className={`mt-3 flex h-[62px] items-center rounded-xl border-l-4 pl-4 text-[32px] font-bold leading-9 tracking-[-0.8px] text-[#0a0a0a] ${accentStyles[currentPhase.accent]}`}>FASE {currentPhase.order} - {currentPhase.name}</h1>
-        <p className="mt-3 text-sm leading-6 text-[#0a0a0a]">Debatid sobre los siguientes temas y seleccionad las {workshopConfig.maxSelectionsPerPhase} tarjetas que creáis prioritarias desde el punto de vista de vuestro colectivo.</p>
+        <p className="mt-3 text-sm leading-6 text-[#0a0a0a]">Debatid sobre los siguientes temas y seleccionad las {scope === "facilitator" ? "tarjetas" : `${workshopConfig.maxSelectionsPerPhase} tarjetas`} que creáis prioritarias desde el punto de vista de vuestro colectivo.</p>
       </div>
       <CategoryFilters config={workshopConfig} active={activeFilter} onChange={setActiveFilter} />
       <div className="mt-7 grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
@@ -77,7 +79,7 @@ export function PhaseExplorer({ phaseId, detailHref, onOpenDetail }: {
             </div>
           )}
         </div>
-        <SelectionTray config={workshopConfig} phaseId={phaseId} selectedIds={selectedIds} unlimited={scope === "facilitator"} sessionId={sessionId} collectiveId={collectiveId} selectionAlreadySent={phaseSent} onSent={handleSent} onRemove={(cardId) => toggle(phaseId, cardId)} />
+        <SelectionTray config={workshopConfig} phaseId={phaseId} selectedIds={selectedIds} unlimited={scope === "facilitator"} sessionId={sessionId} collectiveId={collectiveId} selectionAlreadySent={phaseSent} onSent={handleSent} onPreviousPhase={scope === "facilitator" && currentPhase.order > 1 ? onPreviousPhase : undefined} onNextPhase={scope === "facilitator" && nextPhase ? onNextPhase : undefined} onRemove={(cardId) => toggle(phaseId, cardId)} />
       </div>
       {showSubmissionModal ? <PhaseSubmissionModal phase={phase} workshopComplete={workshopComplete} onContinue={continueAfterSubmission} /> : null}
     </section>

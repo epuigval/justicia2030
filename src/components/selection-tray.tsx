@@ -9,12 +9,12 @@ const categoryStyles: Record<string, string> = {
   gobernanza: "bg-[#cbe2e5]",
 } as const;
 
-export function SelectionTray({ config, phaseId, selectedIds, unlimited = false, sessionId, collectiveId, selectionAlreadySent, onSent, onRemove }: { config: WorkshopConfig; phaseId: PhaseId; selectedIds: CardId[]; unlimited?: boolean; sessionId?: string; collectiveId?: string | null; selectionAlreadySent?: boolean; onSent?: () => void; onRemove: (cardId: CardId) => void }) {
+export function SelectionTray({ config, phaseId, selectedIds, unlimited = false, sessionId, collectiveId, selectionAlreadySent, onSent, onPreviousPhase, onNextPhase, onRemove }: { config: WorkshopConfig; phaseId: PhaseId; selectedIds: CardId[]; unlimited?: boolean; sessionId?: string; collectiveId?: string | null; selectionAlreadySent?: boolean; onSent?: () => void; onPreviousPhase?: () => void; onNextPhase?: () => void; onRemove: (cardId: CardId) => void }) {
   const complete = selectedIds.length === config.maxSelectionsPerPhase;
   const isEmpty = selectedIds.length === 0;
   return (
     <aside className={`rounded-2xl border ${isEmpty ? "border-[#c6d7fa] bg-[#edf2fe] p-6" : "flex flex-col gap-5 border-[#d0e2ff] bg-[#f0f6ff] p-[21px]"} lg:sticky lg:top-5`} aria-label="Selecciones de la fase">
-      {isEmpty ? <><div className="flex flex-col gap-2"><h2 className="text-base font-bold leading-6 text-[#0a0a0a]">Vuestra selección</h2><p className="text-xs font-semibold leading-4 text-[#1d4ed8]">0/{config.maxSelectionsPerPhase} tarjetas</p></div><p className="mt-3 pt-3 text-xs leading-[19.5px] text-[#565656]">Aún no has seleccionado ninguna tarjeta.</p></> : <><div className="flex items-center gap-2">
+      {isEmpty ? <><div className="flex flex-col gap-2"><h2 className="text-base font-bold leading-6 text-[#0a0a0a]">Vuestra selección</h2><p className="text-xs font-semibold leading-4 text-[#1d4ed8]">{unlimited ? "0 tarjetas" : `0/${config.maxSelectionsPerPhase} tarjetas`}</p></div><p className="mt-3 pt-3 text-xs leading-[19.5px] text-[#565656]">{unlimited ? "Seleccionad tarjetas para esta fase." : "Aún no has seleccionado ninguna tarjeta."}</p></> : <><div className="flex items-center gap-2">
         <span aria-hidden="true" className="flex h-7 w-[27px] shrink-0 items-center justify-center rounded-lg bg-[#114dcd]"><img src="/icons/assignment_turned_in.svg" alt="" className="size-[14px]" /></span>
         <h2 className="text-base font-bold leading-6 text-[#0a0a0a]">Vuestra selección</h2>
       </div>
@@ -35,6 +35,10 @@ export function SelectionTray({ config, phaseId, selectedIds, unlimited = false,
         </ul>
       )}
       {!unlimited && sessionId && collectiveId && !selectionAlreadySent ? <div className="border-t border-[rgba(208,226,255,0.8)] pt-[17px]"><PhaseResultSender sessionId={sessionId} phaseId={phaseId} collectiveId={collectiveId} selectedCardIds={selectedIds} onSent={onSent} buttonLabel="Enviar y continuar" disabled={!complete} renderWhenIncomplete /><p className="mt-3 text-center text-xs font-medium leading-[16.5px] text-[#565656]">Se enviará vuestra selección y pasaréis a la siguiente fase.</p></div> : null}</>}
+      {onPreviousPhase || onNextPhase ? <div className={`mt-6 grid gap-3 ${onPreviousPhase && onNextPhase ? "grid-cols-2" : "grid-cols-1"}`}>
+        {onPreviousPhase ? <button type="button" onClick={onPreviousPhase} className="flex h-11 items-center justify-center rounded-lg border border-[#114dcd] bg-white px-4 text-sm font-semibold text-[#114dcd] focus-visible:outline-3">Fase anterior</button> : null}
+        {onNextPhase ? <button type="button" onClick={onNextPhase} className="flex h-11 items-center justify-center rounded-lg bg-[#114dcd] px-4 text-sm font-semibold text-white focus-visible:outline-3">Siguiente fase</button> : null}
+      </div> : null}
     </aside>
   );
 }

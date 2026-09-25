@@ -8,6 +8,7 @@ import { CollectiveSelector } from "@/components/collective-selector";
 import { ResetConfirm } from "@/components/reset-confirm";
 import { PhaseExplorer } from "@/components/phase-explorer";
 import { PhaseResultSender } from "@/components/phase-result-sender";
+import { SelectionTray } from "@/components/selection-tray";
 import { TeamSummary } from "@/components/team-summary";
 import { WorkshopProvider, useWorkshop } from "@/context/workshop-context";
 import { workshopConfig } from "@/config/workshop";
@@ -176,6 +177,20 @@ describe("componentes principales", () => {
   it("deshabilita una tarjeta no seleccionada al alcanzar el máximo", () => {
     render(<CardTile config={workshopConfig} card={workshopConfig.cards[0]} selected={false} atLimit onToggle={vi.fn()} onOpenDetail={vi.fn()} />);
     expect(screen.getByRole("button", { name: "Seleccionar" })).toBeDisabled();
+  });
+
+  it("muestra el estado vacío y avance sin límite en la bandeja del dinamizador", async () => {
+    const user = userEvent.setup();
+    const onPreviousPhase = vi.fn();
+    const onNextPhase = vi.fn();
+    render(<SelectionTray config={workshopConfig} phaseId={workshopConfig.phases[0].id} selectedIds={[]} unlimited onPreviousPhase={onPreviousPhase} onNextPhase={onNextPhase} onRemove={vi.fn()} />);
+    expect(screen.getByText("0 tarjetas")).toBeInTheDocument();
+    expect(screen.queryByText(`0/${workshopConfig.maxSelectionsPerPhase} tarjetas`)).not.toBeInTheDocument();
+    expect(screen.getByText("Seleccionad tarjetas para esta fase.")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Fase anterior" }));
+    await user.click(screen.getByRole("button", { name: "Siguiente fase" }));
+    expect(onPreviousPhase).toHaveBeenCalledOnce();
+    expect(onNextPhase).toHaveBeenCalledOnce();
   });
 
   it("filtra tarjetas por categoría dentro del explorador", async () => {
