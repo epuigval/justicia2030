@@ -10,6 +10,7 @@ import { PhaseExplorer } from "@/components/phase-explorer";
 import { PhaseResultSender } from "@/components/phase-result-sender";
 import { SelectionTray } from "@/components/selection-tray";
 import { TeamSummary } from "@/components/team-summary";
+import { WorkshopCompletionBanner } from "@/components/workshop-completion-banner";
 import { WorkshopProvider, useWorkshop } from "@/context/workshop-context";
 import { workshopConfig } from "@/config/workshop";
 
@@ -24,6 +25,12 @@ function SessionResetProbe() {
   const { hydrated, sessionId, reset } = useWorkshop();
   if (!hydrated) return null;
   return <><output>{sessionId}</output><button type="button" onClick={reset}>Reiniciar sesión de prueba</button></>;
+}
+
+function CompletionBannerResetProbe() {
+  const { hydrated, reset } = useWorkshop();
+  if (!hydrated) return null;
+  return <><WorkshopCompletionBanner /><button type="button" onClick={reset}>Nueva partida de prueba</button></>;
 }
 
 describe("envío del resultado de fase", () => {
@@ -162,6 +169,17 @@ describe("componentes principales", () => {
       expect(persisted.sessionId).toMatch(/^[0-9a-f-]{36}$/i);
       expect(persisted.sentPhaseIds).toEqual([]);
     });
+  });
+
+  it("mantiene el aviso de workshop completado hasta iniciar una nueva partida", async () => {
+    const selectionsByPhase = Object.fromEntries(workshopConfig.phases.map((phase) => [phase.id, []]));
+    localStorage.setItem("justicia2030:v1:team", JSON.stringify({ schemaVersion: 4, sessionId: "123e4567-e89b-42d3-a456-426614174000", selectionsByPhase, collectiveId: workshopConfig.collectives[0].id, sentPhaseIds: workshopConfig.phases.map((phase) => phase.id) }));
+    const user = userEvent.setup();
+    render(<WorkshopProvider scope="team"><CompletionBannerResetProbe /></WorkshopProvider>);
+
+    expect(await screen.findByText("Ya habéis completado todas las fases. Esperad al resto de grupos para conocer el resultado al final de la sesión.")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Nueva partida de prueba" }));
+    await waitFor(() => expect(screen.queryByRole("status")).not.toBeInTheDocument());
   });
 
   it("genera Todas y los filtros configurados", async () => {

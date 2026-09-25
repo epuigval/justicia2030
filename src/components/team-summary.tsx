@@ -8,6 +8,7 @@ import { CollectiveSelector } from "./collective-selector";
 import { LoadingState } from "./loading-state";
 import { StorageNotice } from "./notice";
 import { ResetConfirm } from "./reset-confirm";
+import { WorkshopCompletionBanner } from "./workshop-completion-banner";
 
 const phaseCardStyles = {
   orange: { border: "border-[#e26600]", accent: "bg-[#e26600]", check: "bg-[#e26600]" },
@@ -30,10 +31,13 @@ export function TeamSummary() {
     <main className="mx-auto w-full max-w-[var(--container-7xl)] px-3 py-8 sm:px-6">
       <div className="rounded-[20px] border border-[#d2d2d2] bg-white p-8 sm:p-10 lg:p-12">
         <StorageNotice />
-        <div>
-          <p className="text-sm font-bold uppercase tracking-[0.6px] text-[#114dcd]">Vista principal</p>
-          <h1 className="mt-3 text-3xl font-extrabold leading-9 text-[#0a0a0a] sm:text-[32px]">Nuestro camino hacia Justicia 2030</h1>
-          <p className="mt-3 max-w-3xl text-sm leading-6 text-[#0a0a0a]">Entrad en cualquier fase, debatid las propuestas y ajustad vuestras selecciones libremente.</p>
+        <div className="flex flex-col gap-6 xl:flex-row xl:items-start xl:justify-between">
+          <div>
+            <p className="text-sm font-bold uppercase tracking-[0.6px] text-[#114dcd]">Vista principal</p>
+            <h1 className="mt-3 text-3xl font-extrabold leading-9 text-[#0a0a0a] sm:text-[32px]">Nuestro camino hacia Justicia 2030</h1>
+            <p className="mt-3 max-w-3xl text-sm leading-6 text-[#0a0a0a]">Entrad en cualquier fase, debatid las propuestas y ajustad vuestras selecciones libremente.</p>
+          </div>
+          <WorkshopCompletionBanner className="w-full shrink-0 xl:w-[420px]" />
         </div>
         <section className="mt-8 border-t border-slate-200 pt-6" aria-label="Colectivo seleccionado">
           <div className="flex items-center gap-2">
