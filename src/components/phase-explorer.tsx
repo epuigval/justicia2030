@@ -11,10 +11,10 @@ import { SelectionTray } from "./selection-tray";
 import { PhaseSubmissionModal } from "./phase-submission-modal";
 
 const accentStyles = {
-  orange: "border-[#e26600]",
-  green: "border-[#157f00]",
-  blue: "border-[#114dcd]",
-  violet: "border-[#7e57c2]",
+  orange: "border-[#e26600] bg-[rgba(226,102,0,0.10)]",
+  green: "border-[#10b981] bg-[rgba(16,185,129,0.10)]",
+  blue: "border-[#114dcd] bg-[rgba(17,77,205,0.10)]",
+  violet: "border-[#072056] bg-[rgba(7,32,86,0.10)]",
 } as const;
 
 export function PhaseExplorer({ phaseId, detailHref, onOpenDetail }: {
@@ -47,7 +47,7 @@ export function PhaseExplorer({ phaseId, detailHref, onOpenDetail }: {
     <section aria-labelledby={`phase-${phaseId}`}>
       <div className="mb-6">
         <p className="text-sm font-bold uppercase tracking-[0.6px] text-[#114dcd]">Selección de temas</p>
-        <h1 id={`phase-${phaseId}`} className={`mt-3 border-l-4 pl-4 text-[32px] font-bold leading-9 tracking-[-0.8px] text-[#0a0a0a] ${accentStyles[phase.accent]}`}>FASE {phase.order} - {phase.name}</h1>
+        <h1 id={`phase-${phaseId}`} className={`mt-3 flex h-[62px] items-center rounded-xl border-l-4 pl-4 text-[32px] font-bold leading-9 tracking-[-0.8px] text-[#0a0a0a] ${accentStyles[phase.accent]}`}>FASE {phase.order} - {phase.name}</h1>
         <p className="mt-3 text-sm leading-6 text-[#0a0a0a]">Debatid sobre los siguientes temas y seleccionad las {workshopConfig.maxSelectionsPerPhase} tarjetas que creáis prioritarias desde el punto de vista de vuestro colectivo.</p>
       </div>
       <CategoryFilters config={workshopConfig} active={activeFilter} onChange={setActiveFilter} />
