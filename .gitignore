@@ -3,6 +3,7 @@ node_modules/
 .next/
 .vercel/
 coverage/
+supabase/.temp/
 *.tsbuildinfo
 
 # Local environment files
