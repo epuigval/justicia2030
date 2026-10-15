@@ -91,8 +91,6 @@ export function IndividualResult() {
           <p className="mt-3 max-w-5xl text-sm leading-7 text-[#0a0a0a]">{individualResultTextsV1[resultCode]}</p>
         </div>
 
-        {state.completed ? <p className="mt-6 inline-flex min-h-11 items-center gap-2 rounded-lg bg-green-100 px-5 text-sm font-bold text-green-900" role="status"><span aria-hidden="true">✓</span> Participación completada</p> : null}
-
         <div className="mt-9 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
           {INDIVIDUAL_PHASE_IDS.map((phaseId) => {
             const phase = getPhase(workshopConfig, phaseId)!;
@@ -100,7 +98,7 @@ export function IndividualResult() {
               const card = getCard(workshopConfig, cardId);
               return card?.phaseId === phaseId ? [card] : [];
             });
-            return <PhaseSelectionSummary key={phaseId} phase={phase} selectedCards={selectedCards} selectedCount={selectedCards.length} maxSelections={3} actionHref={state.completed ? undefined : `/individual/phase/${phaseId}`} actionLabel="Modificar selección" />;
+            return <PhaseSelectionSummary key={phaseId} phase={phase} selectedCards={selectedCards} selectedCount={selectedCards.length} maxSelections={3} actionHref={state.completed ? undefined : `/individual/phase/${phaseId}?from=result`} actionLabel="Modificar selección" />;
           })}
         </div>
 

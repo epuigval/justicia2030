@@ -209,6 +209,23 @@ describe("fases Individual", () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
+  it("usa Ver resultado al completar las nueve selecciones por primera vez", async () => {
+    const selectionsByPhase = selectedCardIds();
+    selectionsByPhase["justicia-inteligente"] = selectionsByPhase["justicia-inteligente"].slice(0, 2);
+    localStorage.setItem(INDIVIDUAL_STORAGE_KEY, JSON.stringify(persistedState({ selectionsByPhase, currentPhaseId: "justicia-inteligente" })));
+    const user = userEvent.setup();
+    render(<IndividualProvider><IndividualPhase phaseId="justicia-inteligente" /></IndividualProvider>);
+
+    const replacement = workshopConfig.cards.find((card) => card.phaseId === "justicia-inteligente" && !selectionsByPhase["justicia-inteligente"].includes(card.id))!;
+    const replacementArticle = (await screen.findByRole("heading", { name: replacement.title })).closest("article")!;
+    await user.click(within(replacementArticle).getByRole("button", { name: "Seleccionar" }));
+
+    expect(screen.getByRole("button", { name: "Ver resultado" })).toBeEnabled();
+    expect(screen.queryByRole("button", { name: "Volver al resultado" })).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Ver resultado" }));
+    expect(navigation.push).toHaveBeenCalledWith("/individual/result");
+  });
+
   it("impide saltar una fase incompleta", async () => {
     localStorage.setItem(INDIVIDUAL_STORAGE_KEY, JSON.stringify(persistedState()));
     render(<IndividualProvider><IndividualPhase phaseId="justicia-conectada" /></IndividualProvider>);
@@ -222,7 +239,7 @@ describe("fases Individual", () => {
     vi.stubGlobal("fetch", fetchMock);
     localStorage.setItem(INDIVIDUAL_STORAGE_KEY, JSON.stringify(persistedState({ selectionsByPhase })));
     const user = userEvent.setup();
-    render(<IndividualProvider><IndividualPhase phaseId="justicia-actual" /></IndividualProvider>);
+    render(<IndividualProvider><IndividualPhase phaseId="justicia-actual" returnToResult /></IndividualProvider>);
 
     const phaseCards = workshopConfig.cards.filter((card) => card.phaseId === "justicia-actual");
     const selectedCard = phaseCards.find((card) => selectionsByPhase["justicia-actual"].includes(card.id))!;
@@ -282,7 +299,7 @@ describe("resultado Individual", () => {
       const expected = selectionsByPhase[phase.id].map((id: string) => workshopConfig.cards.find((card) => card.id === id)!.title);
       expected.forEach((title: string) => expect(within(section).getByText(title)).toBeInTheDocument());
       expect(within(section).getAllByRole("listitem")).toHaveLength(3);
-      expect(within(section).getByRole("link", { name: "Modificar selección" })).toHaveAttribute("href", `/individual/phase/${phase.id}`);
+      expect(within(section).getByRole("link", { name: "Modificar selección" })).toHaveAttribute("href", `/individual/phase/${phase.id}?from=result`);
     }
     expect(screen.queryByRole("link", { name: "Ver tarjetas" })).not.toBeInTheDocument();
   });
@@ -339,7 +356,7 @@ describe("resultado Individual", () => {
       json: async () => ({ status: "completed", resultCode: "vision-integral", completedAt: "2026-10-15T10:00:00.000Z" }),
     });
 
-    expect(await screen.findByRole("status")).toHaveTextContent("Participación completada");
+    expect(await screen.findByRole("button", { name: "Nueva participación" })).toBeInTheDocument();
     expect(fetchMock).toHaveBeenCalledOnce();
     expect(fetchMock.mock.calls[0][0]).toBe(`/api/individual/participations/${credentials.participationId}/complete`);
     expect(JSON.parse(fetchMock.mock.calls[0]![1]!.body as string)).toEqual({ writeToken: credentials.writeToken, selectedCardIds: Object.values(selectionsByPhase).flat() });
@@ -352,7 +369,7 @@ describe("resultado Individual", () => {
     expect(navigation.replace).not.toHaveBeenCalled();
     expect(screen.queryByRole("button", { name: "Finalizar" })).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "Modificar selección" })).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Nueva participación" })).toBeInTheDocument();
+    expect(screen.queryByText("Participación completada")).not.toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Ver métricas" })).toHaveAttribute("href", "/dashboard");
   });
 
@@ -363,12 +380,13 @@ describe("resultado Individual", () => {
     const user = userEvent.setup();
     render(<IndividualProvider><IndividualResult /></IndividualProvider>);
 
-    expect(await screen.findByRole("status")).toHaveTextContent("Participación completada");
+    expect(await screen.findByRole("button", { name: "Nueva participación" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Así imaginas la Justicia del futuro" })).toBeInTheDocument();
     expect(screen.getAllByRole("listitem")).toHaveLength(9);
     expect(screen.queryByRole("link", { name: "Modificar selección" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Finalizar" })).not.toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Ver métricas" })).toHaveAttribute("href", "/dashboard");
+    expect(screen.queryByText("Participación completada")).not.toBeInTheDocument();
     expect(fetchMock).not.toHaveBeenCalled();
 
     await user.click(screen.getByRole("button", { name: "Nueva participación" }));

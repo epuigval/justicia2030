@@ -22,7 +22,7 @@ const accentStyles = {
   violet: "border-[#072056] bg-[rgba(7,32,86,0.10)]",
 } as const;
 
-export function IndividualPhase({ phaseId }: { phaseId: IndividualPhaseId }) {
+export function IndividualPhase({ phaseId, returnToResult = false }: { phaseId: IndividualPhaseId; returnToResult?: boolean }) {
   const router = useRouter();
   const [activeFilter, setActiveFilter] = useState<CategoryId | "all">("all");
   const [detailCard, setDetailCard] = useState<WorkshopCard | null>(null);
@@ -101,7 +101,7 @@ export function IndividualPhase({ phaseId }: { phaseId: IndividualPhaseId }) {
           <IndividualSelectionTray
             phaseId={phaseId}
             selectedIds={selectedIds}
-            nextLabel={hasCompleteIndividualSelections(state.selectionsByPhase) ? "Volver al resultado" : nextPhaseId ? "Continuar a la siguiente fase" : "Ver resultado"}
+            nextLabel={hasCompleteIndividualSelections(state.selectionsByPhase) ? returnToResult ? "Volver al resultado" : "Ver resultado" : nextPhaseId ? "Continuar a la siguiente fase" : "Ver resultado"}
             onRemove={(cardId) => state.toggle(phaseId, cardId)}
             onContinue={continueFlow}
           />
