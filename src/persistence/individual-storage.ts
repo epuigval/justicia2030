@@ -42,7 +42,7 @@ export function parsePersistedIndividualState(value: string): StorageResult<Indi
     if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) throw new Error("shape");
     const candidate = parsed as Record<string, unknown>;
     if (candidate.schemaVersion !== 1) throw new Error("version");
-    if (!isValidSessionId(candidate.participationId) || !isWriteToken(candidate.writeToken) || !isCatalogId(candidate.collectiveId)) throw new Error("identity");
+    if (!isValidSessionId(candidate.participationId) || !isCatalogId(candidate.collectiveId)) throw new Error("identity");
     if (candidate.subprofileId !== null && !isCatalogId(candidate.subprofileId)) throw new Error("subprofile");
     if (!INDIVIDUAL_PHASE_IDS.includes(candidate.currentPhaseId as IndividualPhaseId)) throw new Error("phase");
 
@@ -50,16 +50,17 @@ export function parsePersistedIndividualState(value: string): StorageResult<Indi
     if (!selectionsByPhase || typeof candidate.completed !== "boolean") throw new Error("selections");
 
     if (candidate.completed) {
+      if (candidate.writeToken !== null && !isWriteToken(candidate.writeToken)) throw new Error("completed_token");
       if (!hasCompleteIndividualSelections(selectionsByPhase) || !isInterpretationResultCode(candidate.resultCode) || !isValidCompletedAt(candidate.completedAt)) throw new Error("completion");
-    } else if (candidate.resultCode !== null || candidate.completedAt !== null) {
-      throw new Error("started");
+    } else {
+      if (!isWriteToken(candidate.writeToken) || candidate.resultCode !== null || candidate.completedAt !== null) throw new Error("started");
     }
 
     return {
       ok: true,
       value: {
         participationId: candidate.participationId,
-        writeToken: candidate.writeToken,
+        writeToken: candidate.completed ? null : candidate.writeToken as string,
         collectiveId: candidate.collectiveId,
         subprofileId: candidate.subprofileId,
         selectionsByPhase,
@@ -85,14 +86,14 @@ export function createIndividualStorageAdapter(storage: Storage): IndividualStor
       }
     },
     write(state) {
-      if (!state.participationId || !state.writeToken || !state.collectiveId) {
+      if (!state.participationId || !state.collectiveId || (!state.completed && !state.writeToken)) {
         return { ok: false, value: null, message: "No se pudo guardar una participación incompleta." };
       }
       try {
         const persisted: PersistedIndividualStateV1 = {
           schemaVersion: 1,
           participationId: state.participationId,
-          writeToken: state.writeToken,
+          writeToken: state.completed ? null : state.writeToken,
           collectiveId: state.collectiveId,
           subprofileId: state.subprofileId,
           selectionsByPhase: state.selectionsByPhase,

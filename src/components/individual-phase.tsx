@@ -9,9 +9,10 @@ import { LoadingState } from "@/components/loading-state";
 import { useIndividualParticipation } from "@/context/individual-context";
 import { workshopConfig } from "@/config/workshop";
 import { filterCards, getPhase } from "@/domain/catalog";
-import { firstIncompleteIndividualPhase } from "@/domain/individual-flow";
+import { firstIncompleteIndividualPhase, hasCompleteIndividualSelections } from "@/domain/individual-flow";
 import { INDIVIDUAL_PHASE_IDS, type IndividualPhaseId } from "@/domain/individual-participation";
 import type { CategoryId, WorkshopCard } from "@/domain/types";
+import { IndividualAbandonAction } from "./individual-abandon-action";
 import { IndividualSelectionTray } from "./individual-selection-tray";
 
 const accentStyles = {
@@ -26,12 +27,12 @@ export function IndividualPhase({ phaseId }: { phaseId: IndividualPhaseId }) {
   const [activeFilter, setActiveFilter] = useState<CategoryId | "all">("all");
   const [detailCard, setDetailCard] = useState<WorkshopCard | null>(null);
   const state = useIndividualParticipation();
-  const { completed, hydrated, setCurrentPhase } = state;
+  const { completed, hydrated, leaving, setCurrentPhase } = state;
   const phase = getPhase(workshopConfig, phaseId)!;
   const phaseIndex = INDIVIDUAL_PHASE_IDS.indexOf(phaseId);
   const firstIncomplete = firstIncompleteIndividualPhase(state.selectionsByPhase);
   const firstIncompleteIndex = firstIncomplete ? INDIVIDUAL_PHASE_IDS.indexOf(firstIncomplete) : -1;
-  const hasParticipation = Boolean(state.participationId && state.writeToken && state.collectiveId);
+  const hasParticipation = Boolean(state.participationId && state.collectiveId && (completed || state.writeToken));
   const blockedByProgress = firstIncompleteIndex >= 0 && phaseIndex > firstIncompleteIndex;
   const selectedIds = state.selectionsByPhase[phaseId] ?? [];
   const cards = filterCards(workshopConfig, phaseId, activeFilter);
@@ -39,6 +40,7 @@ export function IndividualPhase({ phaseId }: { phaseId: IndividualPhaseId }) {
 
   useEffect(() => {
     if (!hydrated) return;
+    if (leaving) return;
     if (!hasParticipation) {
       router.replace("/individual");
       return;
@@ -52,12 +54,16 @@ export function IndividualPhase({ phaseId }: { phaseId: IndividualPhaseId }) {
       return;
     }
     setCurrentPhase(phaseId);
-  }, [blockedByProgress, completed, firstIncomplete, hasParticipation, hydrated, phaseId, router, setCurrentPhase]);
+  }, [blockedByProgress, completed, firstIncomplete, hasParticipation, hydrated, leaving, phaseId, router, setCurrentPhase]);
 
-  if (!hydrated || !hasParticipation || completed || blockedByProgress) return <LoadingState />;
+  if (!hydrated || leaving || !hasParticipation || completed || blockedByProgress) return <LoadingState />;
 
   function continueFlow() {
     if (selectedIds.length !== 3) return;
+    if (hasCompleteIndividualSelections(state.selectionsByPhase)) {
+      router.push("/individual/result");
+      return;
+    }
     if (nextPhaseId) {
       state.setCurrentPhase(nextPhaseId);
       router.push(`/individual/phase/${nextPhaseId}`);
@@ -95,13 +101,16 @@ export function IndividualPhase({ phaseId }: { phaseId: IndividualPhaseId }) {
           <IndividualSelectionTray
             phaseId={phaseId}
             selectedIds={selectedIds}
-            nextLabel={nextPhaseId ? "Continuar a la siguiente fase" : "Ver resultado"}
+            nextLabel={hasCompleteIndividualSelections(state.selectionsByPhase) ? "Volver al resultado" : nextPhaseId ? "Continuar a la siguiente fase" : "Ver resultado"}
             onRemove={(cardId) => state.toggle(phaseId, cardId)}
             onContinue={continueFlow}
           />
         </div>
 
-        {phaseIndex > 0 ? <button type="button" onClick={() => router.push(`/individual/phase/${INDIVIDUAL_PHASE_IDS[phaseIndex - 1]}`)} className="mt-7 min-h-10 rounded-lg border border-[#114dcd] bg-white px-4 text-sm font-semibold text-[#114dcd] focus-visible:outline-3">Volver a la fase anterior</button> : null}
+        <div className="mt-7 flex flex-wrap items-start gap-3">
+          {phaseIndex > 0 ? <button type="button" onClick={() => router.push(`/individual/phase/${INDIVIDUAL_PHASE_IDS[phaseIndex - 1]}`)} className="min-h-11 rounded-lg border border-[#114dcd] bg-white px-4 text-sm font-semibold text-[#114dcd] focus-visible:outline-3">Volver a la fase anterior</button> : null}
+          <IndividualAbandonAction />
+        </div>
         {detailCard ? <CardDetailModal
           card={detailCard}
           onClose={() => setDetailCard(null)}

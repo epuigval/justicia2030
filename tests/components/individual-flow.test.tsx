@@ -56,6 +56,17 @@ function persistedState(overrides: Partial<IndividualSessionState> = {}) {
   };
 }
 
+function completedState(overrides: Partial<IndividualSessionState> = {}) {
+  return persistedState({
+    writeToken: null,
+    selectionsByPhase: selectedCardIds(),
+    completed: true,
+    resultCode: "vision-integral",
+    completedAt: "2026-10-15T10:00:00.000Z",
+    ...overrides,
+  });
+}
+
 function ReloadProbe() {
   const state = useIndividualParticipation();
   if (!state.hydrated) return null;
@@ -140,6 +151,9 @@ describe("entrada y cabecera Individual", () => {
     render(<HomeActions />);
     const link = await screen.findByRole("link", { name: "Participación individual" });
     expect(link).toHaveAttribute("href", "/individual");
+    expect(screen.getByRole("link", { name: "Consultar métricas" })).toHaveAttribute("href", "/dashboard");
+    expect(screen.getByRole("link", { name: "Iniciar como equipo" })).toHaveAttribute("href", "/team");
+    expect(screen.getByRole("link", { name: "Iniciar como dinamizador" })).toHaveAttribute("href", "/facilitator");
   });
 
   it("reanuda en la primera fase incompleta", async () => {
@@ -200,10 +214,63 @@ describe("fases Individual", () => {
     render(<IndividualProvider><IndividualPhase phaseId="justicia-conectada" /></IndividualProvider>);
     await waitFor(() => expect(navigation.replace).toHaveBeenCalledWith("/individual/phase/justicia-actual"));
   });
+
+  it("modifica una fase completa, conserva las demás y vuelve al resultado sin escribir en remoto", async () => {
+    const selectionsByPhase = selectedCardIds();
+    const connectedSelection = [...selectionsByPhase["justicia-conectada"]];
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+    localStorage.setItem(INDIVIDUAL_STORAGE_KEY, JSON.stringify(persistedState({ selectionsByPhase })));
+    const user = userEvent.setup();
+    render(<IndividualProvider><IndividualPhase phaseId="justicia-actual" /></IndividualProvider>);
+
+    const phaseCards = workshopConfig.cards.filter((card) => card.phaseId === "justicia-actual");
+    const selectedCard = phaseCards.find((card) => selectionsByPhase["justicia-actual"].includes(card.id))!;
+    const replacementCard = phaseCards.find((card) => !selectionsByPhase["justicia-actual"].includes(card.id))!;
+    await user.click(within(screen.getByRole("heading", { name: selectedCard.title }).closest("article")!).getByRole("button", { name: "Quitar" }));
+    await user.click(within(screen.getByRole("heading", { name: replacementCard.title }).closest("article")!).getByRole("button", { name: "Seleccionar" }));
+
+    await waitFor(() => {
+      const persisted = JSON.parse(localStorage.getItem(INDIVIDUAL_STORAGE_KEY)!);
+      expect(persisted.selectionsByPhase["justicia-conectada"]).toEqual(connectedSelection);
+      expect(persisted.selectionsByPhase["justicia-actual"]).toContain(replacementCard.id);
+      expect(persisted.selectionsByPhase["justicia-actual"]).not.toContain(selectedCard.id);
+    });
+    await user.click(screen.getByRole("button", { name: "Volver al resultado" }));
+
+    expect(navigation.push).toHaveBeenCalledWith("/individual/result");
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("abandona desde una fase sin completar ni modificar la participación remota", async () => {
+    localStorage.setItem(INDIVIDUAL_STORAGE_KEY, JSON.stringify(persistedState()));
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+    const user = userEvent.setup();
+    render(<IndividualProvider><IndividualPhase phaseId="justicia-actual" /></IndividualProvider>);
+
+    await user.click(await screen.findByRole("button", { name: "Abandonar participación" }));
+    const dialog = screen.getByRole("alertdialog", { name: "Abandonar participación" });
+    await user.click(within(dialog).getByRole("button", { name: "Abandonar participación" }));
+
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(localStorage.getItem(INDIVIDUAL_STORAGE_KEY)).toBeNull();
+    expect(navigation.replace).toHaveBeenCalledTimes(1);
+    expect(navigation.replace).toHaveBeenCalledWith("/");
+  });
+
+  it("redirige una participación completed a resultado sin permitir editar la fase", async () => {
+    localStorage.setItem(INDIVIDUAL_STORAGE_KEY, JSON.stringify(completedState()));
+    render(<IndividualProvider><IndividualPhase phaseId="justicia-actual" /></IndividualProvider>);
+
+    await waitFor(() => expect(navigation.replace).toHaveBeenCalledWith("/individual/result"));
+    expect(screen.queryByRole("button", { name: "Quitar" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Seleccionar" })).not.toBeInTheDocument();
+  });
 });
 
 describe("resultado Individual", () => {
-  it("agrupa nueve tarjetas en tres fases sin acciones de edición", async () => {
+  it("agrupa nueve tarjetas y permite modificar cualquiera de las tres fases mientras sigue started", async () => {
     const selectionsByPhase = selectedCardIds();
     localStorage.setItem(INDIVIDUAL_STORAGE_KEY, JSON.stringify(persistedState({ selectionsByPhase, currentPhaseId: "justicia-inteligente" })));
     render(<IndividualProvider><IndividualResult /></IndividualProvider>);
@@ -215,6 +282,7 @@ describe("resultado Individual", () => {
       const expected = selectionsByPhase[phase.id].map((id: string) => workshopConfig.cards.find((card) => card.id === id)!.title);
       expected.forEach((title: string) => expect(within(section).getByText(title)).toBeInTheDocument());
       expect(within(section).getAllByRole("listitem")).toHaveLength(3);
+      expect(within(section).getByRole("link", { name: "Modificar selección" })).toHaveAttribute("href", `/individual/phase/${phase.id}`);
     }
     expect(screen.queryByRole("link", { name: "Ver tarjetas" })).not.toBeInTheDocument();
   });
@@ -226,7 +294,7 @@ describe("resultado Individual", () => {
     const user = userEvent.setup();
     render(<IndividualProvider><IndividualResult /></IndividualProvider>);
 
-    await user.click(await screen.findByRole("button", { name: "Abandonar partida" }));
+    await user.click(await screen.findByRole("button", { name: "Abandonar participación" }));
     const dialog = screen.getByRole("alertdialog", { name: "Abandonar participación" });
     expect(within(dialog).getByText("Si abandonas esta participación, se eliminará el progreso guardado en este dispositivo. La participación seguirá registrada como iniciada, pero no se contabilizará como completada.")).toBeInTheDocument();
     await user.click(within(dialog).getByRole("button", { name: "Abandonar participación" }));
@@ -243,7 +311,7 @@ describe("resultado Individual", () => {
     const user = userEvent.setup();
     render(<IndividualProvider><IndividualResult /></IndividualProvider>);
 
-    await user.click(await screen.findByRole("button", { name: "Abandonar partida" }));
+    await user.click(await screen.findByRole("button", { name: "Abandonar participación" }));
     const dialog = screen.getByRole("alertdialog", { name: "Abandonar participación" });
     await user.click(within(dialog).getByRole("button", { name: "Cancelar" }));
 
@@ -253,7 +321,7 @@ describe("resultado Individual", () => {
     expect(navigation.replace).not.toHaveBeenCalled();
   });
 
-  it("finaliza una sola vez, limpia estado local y vuelve al inicio", async () => {
+  it("finaliza una sola vez y permanece en resultado en modo completado", async () => {
     const selectionsByPhase = selectedCardIds();
     localStorage.setItem(INDIVIDUAL_STORAGE_KEY, JSON.stringify(persistedState({ selectionsByPhase })));
     let resolveRequest!: (response: { ok: boolean; json: () => Promise<Record<string, string>> }) => void;
@@ -271,12 +339,43 @@ describe("resultado Individual", () => {
       json: async () => ({ status: "completed", resultCode: "vision-integral", completedAt: "2026-10-15T10:00:00.000Z" }),
     });
 
-    await waitFor(() => expect(navigation.replace).toHaveBeenCalledWith("/"));
+    expect(await screen.findByRole("status")).toHaveTextContent("Participación completada");
     expect(fetchMock).toHaveBeenCalledOnce();
     expect(fetchMock.mock.calls[0][0]).toBe(`/api/individual/participations/${credentials.participationId}/complete`);
     expect(JSON.parse(fetchMock.mock.calls[0]![1]!.body as string)).toEqual({ writeToken: credentials.writeToken, selectedCardIds: Object.values(selectionsByPhase).flat() });
+    await waitFor(() => {
+      const persisted = JSON.parse(localStorage.getItem(INDIVIDUAL_STORAGE_KEY)!);
+      expect(persisted.completed).toBe(true);
+      expect(persisted.writeToken).toBeNull();
+      expect(persisted.selectionsByPhase).toEqual(selectionsByPhase);
+    });
+    expect(navigation.replace).not.toHaveBeenCalled();
+    expect(screen.queryByRole("button", { name: "Finalizar" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Modificar selección" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Nueva participación" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Ver métricas" })).toHaveAttribute("href", "/dashboard");
+  });
+
+  it("recupera completed tras recarga, queda en solo lectura y permite iniciar otra participación", async () => {
+    localStorage.setItem(INDIVIDUAL_STORAGE_KEY, JSON.stringify(completedState()));
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+    const user = userEvent.setup();
+    render(<IndividualProvider><IndividualResult /></IndividualProvider>);
+
+    expect(await screen.findByRole("status")).toHaveTextContent("Participación completada");
+    expect(screen.getByRole("heading", { name: "Así imaginas la Justicia del futuro" })).toBeInTheDocument();
+    expect(screen.getAllByRole("listitem")).toHaveLength(9);
+    expect(screen.queryByRole("link", { name: "Modificar selección" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Finalizar" })).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Ver métricas" })).toHaveAttribute("href", "/dashboard");
+    expect(fetchMock).not.toHaveBeenCalled();
+
+    await user.click(screen.getByRole("button", { name: "Nueva participación" }));
     expect(localStorage.getItem(INDIVIDUAL_STORAGE_KEY)).toBeNull();
-    expect(screen.queryByText("Participación completada")).not.toBeInTheDocument();
+    expect(navigation.replace).toHaveBeenCalledTimes(1);
+    expect(navigation.replace).toHaveBeenCalledWith("/individual");
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it("redirige a la primera fase incompleta si no hay nueve selecciones", async () => {

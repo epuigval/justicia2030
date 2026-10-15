@@ -28,7 +28,7 @@ export function IndividualStart({ catalog, catalogUnavailable = false }: { catal
   useEffect(() => {
     if (!hydrated || !participationId) return;
     if (completed) {
-      router.replace("/");
+      router.replace("/individual/result");
       return;
     }
     router.replace(individualResumeHref(state));

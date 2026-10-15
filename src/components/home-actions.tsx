@@ -15,12 +15,13 @@ export function HomeActions() {
   useEffect(() => {
     const result = createStorageAdapter(window.localStorage, storageKeys.team).read(workshopConfig);
     const individualResult = createIndividualStorageAdapter(window.localStorage).read();
-    const individual = individualResult.ok && individualResult.value && !individualResult.value.completed ? individualResult.value : null;
+    const storedIndividual = individualResult.ok ? individualResult.value : null;
+    const individual = storedIndividual && !storedIndividual.completed ? storedIndividual : null;
     const timer = window.setTimeout(() => {
       setSession({
         ready: true,
         hasSelections: result.ok && (result.value.collectiveId !== null || totalSelected(result.value.selectionsByPhase) > 0),
-        individualHref: individual ? individualResumeHref(individual) : "/individual",
+        individualHref: individual ? individualResumeHref(individual) : storedIndividual?.completed ? "/individual/result" : "/individual",
         hasIndividual: Boolean(individual),
       });
       setNotice(result.ok ? "" : result.message);
@@ -34,13 +35,16 @@ export function HomeActions() {
       {notice ? <p className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-amber-950" role="status">{notice}</p> : null}
       <div className="flex flex-wrap gap-3">
         <Link href="/team" className="flex min-h-12 items-center rounded-xl bg-blue-700 px-6 font-black text-white shadow-sm focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-blue-600">
-          {session.hasSelections ? "Continuar dinámica actual" : "Dinámica actual"}
+          {session.hasSelections ? "Continuar participación como equipo" : "Iniciar como equipo"}
         </Link>
         <Link href={session.individualHref} className="flex min-h-12 items-center rounded-xl border-2 border-blue-700 bg-white px-6 font-black text-blue-800 shadow-sm focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-blue-600">
           {session.hasIndividual ? "Continuar participación individual" : "Participación individual"}
         </Link>
       </div>
-      <Link href="/facilitator" className="inline-flex min-h-11 items-center rounded-lg px-1 font-bold text-blue-800 underline decoration-2 underline-offset-4 focus-visible:outline-3">Iniciar como dinamizador</Link>
+      <div className="flex flex-wrap gap-x-6 gap-y-2">
+        <Link href="/facilitator" className="inline-flex min-h-11 items-center rounded-lg px-1 font-bold text-blue-800 underline decoration-2 underline-offset-4 focus-visible:outline-3">Iniciar como dinamizador</Link>
+        <Link href="/dashboard" className="inline-flex min-h-11 items-center rounded-lg px-1 font-bold text-blue-800 underline decoration-2 underline-offset-4 focus-visible:outline-3">Consultar métricas</Link>
+      </div>
     </div>
   );
 }

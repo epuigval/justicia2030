@@ -9,6 +9,7 @@ import { createEmptyIndividualSession, createIndividualStorageAdapter } from "@/
 
 interface IndividualContextState extends IndividualSessionState {
   hydrated: boolean;
+  leaving: boolean;
   storageNotice: string | null;
 }
 
@@ -17,6 +18,7 @@ type Action =
   | { type: "start"; participationId: string; writeToken: string; collectiveId: string; subprofileId: string | null }
   | { type: "toggle"; phaseId: IndividualPhaseId; cardId: string }
   | { type: "set-phase"; phaseId: IndividualPhaseId }
+  | { type: "complete"; resultCode: IndividualSessionState["resultCode"]; completedAt: string }
   | { type: "clear" }
   | { type: "storage-error"; notice: string }
   | { type: "dismiss-notice" };
@@ -24,11 +26,12 @@ type Action =
 function reducer(state: IndividualContextState, action: Action): IndividualContextState {
   switch (action.type) {
     case "hydrate":
-      return { ...(action.session ?? createEmptyIndividualSession()), hydrated: true, storageNotice: action.notice };
+      return { ...(action.session ?? createEmptyIndividualSession()), hydrated: true, leaving: false, storageNotice: action.notice };
     case "start":
       return {
         ...createEmptyIndividualSession(),
         hydrated: true,
+        leaving: false,
         storageNotice: null,
         participationId: action.participationId,
         writeToken: action.writeToken,
@@ -40,8 +43,11 @@ function reducer(state: IndividualContextState, action: Action): IndividualConte
       return { ...state, selectionsByPhase: toggleCard(workshopConfig, state.selectionsByPhase, action.phaseId, action.cardId, 3) };
     case "set-phase":
       return state.currentPhaseId === action.phaseId ? state : { ...state, currentPhaseId: action.phaseId };
+    case "complete":
+      if (state.completed || !action.resultCode) return state;
+      return { ...state, completed: true, completedAt: action.completedAt, resultCode: action.resultCode, writeToken: null };
     case "clear":
-      return { ...createEmptyIndividualSession(), hydrated: true, storageNotice: null };
+      return { ...createEmptyIndividualSession(), hydrated: true, leaving: true, storageNotice: null };
     case "storage-error":
       return { ...state, storageNotice: action.notice };
     case "dismiss-notice":
@@ -53,6 +59,7 @@ export interface IndividualContextValue extends IndividualContextState {
   start: (input: { participationId: string; writeToken: string; collectiveId: string; subprofileId: string | null }) => void;
   toggle: (phaseId: IndividualPhaseId, cardId: string) => void;
   setCurrentPhase: (phaseId: IndividualPhaseId) => void;
+  markCompleted: (resultCode: NonNullable<IndividualSessionState["resultCode"]>, completedAt: string) => void;
   clear: () => boolean;
   dismissNotice: () => void;
 }
@@ -60,7 +67,7 @@ export interface IndividualContextValue extends IndividualContextState {
 const IndividualContext = createContext<IndividualContextValue | null>(null);
 
 function createInitialState(): IndividualContextState {
-  return { ...createEmptyIndividualSession(), hydrated: false, storageNotice: null };
+  return { ...createEmptyIndividualSession(), hydrated: false, leaving: false, storageNotice: null };
 }
 
 export function IndividualProvider({ children }: { children: ReactNode }) {
@@ -105,6 +112,9 @@ export function IndividualProvider({ children }: { children: ReactNode }) {
 
   const toggle = useCallback((phaseId: IndividualPhaseId, cardId: string) => dispatch({ type: "toggle", phaseId, cardId }), []);
   const setCurrentPhase = useCallback((phaseId: IndividualPhaseId) => dispatch({ type: "set-phase", phaseId }), []);
+  const markCompleted = useCallback((resultCode: NonNullable<IndividualSessionState["resultCode"]>, completedAt: string) => {
+    dispatch({ type: "complete", resultCode, completedAt });
+  }, []);
   const clear = useCallback(() => {
     const result = createIndividualStorageAdapter(window.localStorage).remove();
     if (!result.ok) {
@@ -121,9 +131,10 @@ export function IndividualProvider({ children }: { children: ReactNode }) {
     start,
     toggle,
     setCurrentPhase,
+    markCompleted,
     clear,
     dismissNotice,
-  }), [clear, dismissNotice, setCurrentPhase, start, state, toggle]);
+  }), [clear, dismissNotice, markCompleted, setCurrentPhase, start, state, toggle]);
 
   return <IndividualContext.Provider value={value}>{children}</IndividualContext.Provider>;
 }

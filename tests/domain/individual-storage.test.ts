@@ -50,6 +50,25 @@ describe("persistencia Individual", () => {
     expect(persisted.storageNotice).toBeUndefined();
   });
 
+  it("conserva un resultado completado tras recarga sin persistir el token de escritura", () => {
+    localStorage.clear();
+    const adapter = createIndividualStorageAdapter(localStorage);
+    const selectionsByPhase = Object.fromEntries(workshopConfig.phases.map((phase) => [
+      phase.id,
+      workshopConfig.cards.filter((card) => card.phaseId === phase.id).slice(0, 3).map((card) => card.id),
+    ]));
+    const completed = session({
+      selectionsByPhase,
+      completed: true,
+      resultCode: "vision-integral",
+      completedAt: "2026-10-15T10:00:00.000Z",
+    });
+
+    expect(adapter.write(completed)).toEqual({ ok: true, value: null });
+    expect(JSON.parse(localStorage.getItem(INDIVIDUAL_STORAGE_KEY)!).writeToken).toBeNull();
+    expect(adapter.read()).toEqual({ ok: true, value: { ...completed, writeToken: null } });
+  });
+
   it("rechaza selecciones imposibles o tarjetas de otra fase", () => {
     const tooMany = session({
       selectionsByPhase: {

@@ -32,7 +32,7 @@ export interface IndividualSessionState {
 export interface PersistedIndividualStateV1 extends Omit<IndividualSessionState, "participationId" | "writeToken" | "collectiveId"> {
   schemaVersion: 1;
   participationId: string;
-  writeToken: string;
+  writeToken: string | null;
   collectiveId: string;
 }
 

@@ -8,12 +8,13 @@ const phaseCardStyles = {
   violet: { border: "border-[#072056]", accent: "bg-[#072056]", check: "bg-[#072056]" },
 } as const;
 
-export function PhaseSelectionSummary({ phase, selectedCards, selectedCount, maxSelections, actionHref }: {
+export function PhaseSelectionSummary({ phase, selectedCards, selectedCount, maxSelections, actionHref, actionLabel = "Ver tarjetas" }: {
   phase: WorkshopPhase;
   selectedCards: WorkshopCard[];
   selectedCount: number;
   maxSelections: number;
   actionHref?: string;
+  actionLabel?: string;
 }) {
   const style = phaseCardStyles[phase.accent];
   const progress = `${(selectedCount / maxSelections) * 100}%`;
@@ -28,7 +29,7 @@ export function PhaseSelectionSummary({ phase, selectedCards, selectedCount, max
         <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white"><div className={`h-full rounded-full ${style.accent}`} style={{ width: progress }} /></div>
       </div>
       {selectedCards.length > 0 ? <ul className="mt-3 space-y-2" aria-label={`Tarjetas seleccionadas de ${phase.name}`}>{selectedCards.map((card) => <li key={card.id} className="flex items-start gap-2 text-xs leading-4 text-[#0a0a0a]"><span aria-hidden="true" className={`size-4 shrink-0 [mask-image:url('/icons/check.svg')] [mask-position:center] [mask-repeat:no-repeat] [mask-size:contain] ${style.check}`} />{card.title}</li>)}</ul> : null}
-      {actionHref ? <div className="mt-auto pt-4"><Link href={actionHref} className="flex min-h-9 w-full items-center justify-center rounded-lg bg-[#114dcd] px-4 py-2.5 text-sm font-semibold leading-4 text-white shadow-[0_1px_1px_rgba(0,0,0,0.05)] focus-visible:outline-3">Ver tarjetas</Link></div> : null}
+      {actionHref ? <div className="mt-auto pt-4"><Link href={actionHref} className="flex min-h-9 w-full items-center justify-center rounded-lg bg-[#114dcd] px-4 py-2.5 text-sm font-semibold leading-4 text-white shadow-[0_1px_1px_rgba(0,0,0,0.05)] focus-visible:outline-3">{actionLabel}</Link></div> : null}
     </article>
   );
 }
