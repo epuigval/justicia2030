@@ -151,7 +151,7 @@ describe("entrada y cabecera Individual", () => {
     render(<HomeActions />);
     const link = await screen.findByRole("link", { name: "Participación individual" });
     expect(link).toHaveAttribute("href", "/individual");
-    expect(screen.getByRole("link", { name: "Consultar métricas" })).toHaveAttribute("href", "/dashboard");
+    expect(screen.getByRole("link", { name: "Consultar métricas" })).toHaveAttribute("href", "/dashboard?origin=home");
     expect(screen.getByRole("link", { name: "Iniciar como equipo" })).toHaveAttribute("href", "/team");
     expect(screen.getByRole("link", { name: "Iniciar como dinamizador" })).toHaveAttribute("href", "/facilitator");
   });
@@ -370,7 +370,7 @@ describe("resultado Individual", () => {
     expect(screen.queryByRole("button", { name: "Finalizar" })).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "Modificar selección" })).not.toBeInTheDocument();
     expect(screen.queryByText("Participación completada")).not.toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Ver métricas" })).toHaveAttribute("href", "/dashboard");
+    expect(screen.getByRole("link", { name: "Ver métricas" })).toHaveAttribute("href", "/dashboard?origin=result");
   });
 
   it("recupera completed tras recarga, queda en solo lectura y permite iniciar otra participación", async () => {
@@ -385,7 +385,7 @@ describe("resultado Individual", () => {
     expect(screen.getAllByRole("listitem")).toHaveLength(9);
     expect(screen.queryByRole("link", { name: "Modificar selección" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Finalizar" })).not.toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Ver métricas" })).toHaveAttribute("href", "/dashboard");
+    expect(screen.getByRole("link", { name: "Ver métricas" })).toHaveAttribute("href", "/dashboard?origin=result");
     expect(screen.queryByText("Participación completada")).not.toBeInTheDocument();
     expect(fetchMock).not.toHaveBeenCalled();
 

@@ -43,7 +43,7 @@ export function HomeActions() {
       </div>
       <div className="flex flex-wrap gap-x-6 gap-y-2">
         <Link href="/facilitator" className="inline-flex min-h-11 items-center rounded-lg px-1 font-bold text-blue-800 underline decoration-2 underline-offset-4 focus-visible:outline-3">Iniciar como dinamizador</Link>
-        <Link href="/dashboard" className="inline-flex min-h-11 items-center rounded-lg px-1 font-bold text-blue-800 underline decoration-2 underline-offset-4 focus-visible:outline-3">Consultar métricas</Link>
+        <Link href="/dashboard?origin=home" className="inline-flex min-h-11 items-center rounded-lg px-1 font-bold text-blue-800 underline decoration-2 underline-offset-4 focus-visible:outline-3">Consultar métricas</Link>
       </div>
     </div>
   );
