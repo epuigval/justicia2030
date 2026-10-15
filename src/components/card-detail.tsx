@@ -6,12 +6,16 @@ import { useWorkshop } from "@/context/workshop-context";
 import { getCategory, getPhase } from "@/domain/catalog";
 import type { WorkshopCard } from "@/domain/types";
 
-export function CardDetail({ card, backHref, onBack }: { card: WorkshopCard; backHref?: string; onBack?: () => void }) {
-  const { scope, selectionsByPhase, toggle, isSelectionSent } = useWorkshop();
-  const selectedIds = selectionsByPhase[card.phaseId] ?? [];
-  const selected = selectedIds.includes(card.id);
-  const disabled = scope === "team" && !selected && selectedIds.length >= workshopConfig.maxSelectionsPerPhase;
-  const selectionSent = isSelectionSent(card.phaseId);
+export interface CardDetailSelection {
+  selected: boolean;
+  disabled: boolean;
+  locked: boolean;
+  maxSelections: number;
+  onToggle: () => void;
+}
+
+export function CardDetail({ card, selection, backHref, onBack }: { card: WorkshopCard; selection: CardDetailSelection; backHref?: string; onBack?: () => void }) {
+  const { selected, disabled, locked, maxSelections, onToggle } = selection;
   const phase = getPhase(workshopConfig, card.phaseId);
   const category = getCategory(workshopConfig, card.categoryId);
 
@@ -29,11 +33,25 @@ export function CardDetail({ card, backHref, onBack }: { card: WorkshopCard; bac
         <section className="rounded-2xl bg-emerald-50 p-5"><h2 className="text-lg font-bold text-emerald-950">Beneficios</h2><ul className="mt-2 list-disc space-y-2 pl-5">{card.benefits.map((benefit) => <li key={benefit}>{benefit}</li>)}</ul></section>
         <section className="rounded-2xl bg-violet-50 p-5"><h2 className="text-lg font-bold text-violet-950">Para el debate</h2><p className="mt-2 leading-7">{card.debateQuestion}</p></section>
       </div>
-      {disabled && !selectionSent ? <p className="mt-6 rounded-xl bg-amber-50 p-4 font-semibold text-amber-900">Máximo {workshopConfig.maxSelectionsPerPhase} tarjetas. Quita una selección para elegir otra.</p> : null}
+      {disabled && !locked ? <p className="mt-6 rounded-xl bg-amber-50 p-4 font-semibold text-amber-900">Máximo {maxSelections} tarjetas. Quita una selección para elegir otra.</p> : null}
       <div className="mt-8 flex flex-wrap gap-3">
         {backHref ? <Link href={backHref} className="flex min-h-11 items-center rounded-lg border border-blue-700 px-5 font-semibold text-blue-800 focus-visible:outline-3">Volver a la fase</Link> : <button type="button" onClick={onBack} className="min-h-11 rounded-lg border border-blue-700 px-5 font-semibold text-blue-800 focus-visible:outline-3">Volver a las tarjetas</button>}
-        {!selectionSent ? <button type="button" disabled={disabled} onClick={() => toggle(card.phaseId, card.id)} className="min-h-11 rounded-lg bg-blue-700 px-5 font-semibold text-white focus-visible:outline-3 disabled:bg-slate-300 disabled:text-slate-600">{selected ? "Quitar selección" : "Seleccionar tarjeta"}</button> : null}
+        {!locked ? <button type="button" disabled={disabled} onClick={onToggle} className="min-h-11 rounded-lg bg-blue-700 px-5 font-semibold text-white focus-visible:outline-3 disabled:bg-slate-300 disabled:text-slate-600">{selected ? "Quitar selección" : "Seleccionar tarjeta"}</button> : null}
       </div>
     </article>
   );
+}
+
+export function WorkshopCardDetail({ card, backHref, onBack }: { card: WorkshopCard; backHref?: string; onBack?: () => void }) {
+  const { scope, selectionsByPhase, toggle, isSelectionSent } = useWorkshop();
+  const selectedIds = selectionsByPhase[card.phaseId] ?? [];
+  const selected = selectedIds.includes(card.id);
+  const disabled = scope === "team" && !selected && selectedIds.length >= workshopConfig.maxSelectionsPerPhase;
+  return <CardDetail card={card} backHref={backHref} onBack={onBack} selection={{
+    selected,
+    disabled,
+    locked: isSelectionSent(card.phaseId),
+    maxSelections: workshopConfig.maxSelectionsPerPhase,
+    onToggle: () => toggle(card.phaseId, card.id),
+  }} />;
 }

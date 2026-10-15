@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { CategoryFilters } from "@/components/category-filters";
-import { CardDetailModal } from "@/components/card-detail-modal";
+import { WorkshopCardDetailModal } from "@/components/card-detail-modal";
 import { CardTile } from "@/components/card-tile";
 import { CollectiveSelector } from "@/components/collective-selector";
 import { ResetConfirm } from "@/components/reset-confirm";
@@ -253,7 +253,7 @@ describe("componentes principales", () => {
   it("muestra el detalle como diálogo y permite cerrarlo con Escape", async () => {
     const user = userEvent.setup();
     const onClose = vi.fn();
-    render(<WorkshopProvider scope="team"><CardDetailModal card={workshopConfig.cards[0]} onClose={onClose} /></WorkshopProvider>);
+    render(<WorkshopProvider scope="team"><WorkshopCardDetailModal card={workshopConfig.cards[0]} onClose={onClose} /></WorkshopProvider>);
     expect(screen.getByRole("dialog", { name: `Detalle de ${workshopConfig.cards[0].title}` })).toBeInTheDocument();
     await user.keyboard("{Escape}");
     expect(onClose).toHaveBeenCalledOnce();
@@ -264,7 +264,7 @@ describe("componentes principales", () => {
     const selectionsByPhase = Object.fromEntries(workshopConfig.phases.map((configuredPhase) => [configuredPhase.id, []]));
     localStorage.setItem("justicia2030:v1:team", JSON.stringify({ schemaVersion: 4, sessionId: "123e4567-e89b-42d3-a456-426614174000", selectionsByPhase, collectiveId: workshopConfig.collectives[0].id, sentPhaseIds: [phase.id] }));
 
-    render(<WorkshopProvider scope="team"><CardDetailModal card={workshopConfig.cards.find((card) => card.phaseId === phase.id)!} onClose={vi.fn()} /></WorkshopProvider>);
+    render(<WorkshopProvider scope="team"><WorkshopCardDetailModal card={workshopConfig.cards.find((card) => card.phaseId === phase.id)!} onClose={vi.fn()} /></WorkshopProvider>);
 
     await waitFor(() => expect(screen.queryByRole("button", { name: "Seleccionar tarjeta" })).not.toBeInTheDocument());
   });

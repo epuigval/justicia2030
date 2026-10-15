@@ -1,0 +1,21 @@
+import type { InterpretationResultCode } from "@/domain/individual-participation";
+
+export const INDIVIDUAL_INTERPRETATION_VERSION = "interpretation-v1" as const;
+
+export const individualResultTextsV1: Record<InterpretationResultCode, string> = {
+  "foco-personas-procesos": "Tu visión parte de las personas para transformar la forma de prestar Justicia. Tus elecciones apuntan a simplificar procedimientos y formas de trabajo para reducir fricciones tanto para ciudadanía como para profesionales. Una Justicia 2030 más sencilla, ágil y centrada en las necesidades reales de quienes se relacionan con ella.",
+  "foco-personas-tecnologia": "Tu visión combina una Justicia centrada en las personas con el potencial de la tecnología. Tus elecciones apuntan a utilizar nuevas capacidades digitales para facilitar el trabajo de los profesionales y ofrecer una relación más sencilla, accesible y conectada con la ciudadanía. Una Justicia 2030 donde la tecnología esté al servicio de las personas.",
+  "foco-personas-gobernanza": "Tu visión combina una Justicia centrada en las personas con una transformación bien gobernada. Tus elecciones ponen el foco tanto en mejorar la experiencia de ciudadanía y profesionales como en asegurar coordinación, criterios comunes y garantías. Una Justicia 2030 más cercana, coherente y confiable.",
+  "foco-procesos-tecnologia": "Tu visión apuesta por transformar los procesos apoyándose en la tecnología. Tus elecciones apuntan a simplificar la forma de trabajar, conectar mejor la información y utilizar las capacidades digitales para reducir tareas manuales y ganar eficiencia. Una Justicia 2030 más ágil, integrada e inteligente.",
+  "foco-procesos-gobernanza": "Tu visión combina eficiencia y capacidad de organización. Tus elecciones reflejan que transformar la Justicia requiere simplificar procesos, pero también coordinar actores, establecer criterios comunes y medir los resultados. Una Justicia 2030 más eficiente, coherente y orientada a la mejora continua.",
+  "foco-tecnologia-gobernanza": "Tu visión combina innovación tecnológica y una gobernanza sólida. Tus elecciones apuntan a construir nuevas capacidades digitales sobre bases comunes de interoperabilidad, dato, seguridad y coordinación. Una Justicia 2030 capaz de innovar de forma ordenada, sostenible y confiable.",
+  "foco-personas": "Tu visión pone a las personas en el centro de la transformación. Tus elecciones reflejan una Justicia que busca mejorar la experiencia de ciudadanía y profesionales, facilitar su relación con el sistema y acompañar el cambio para que las nuevas capacidades se traduzcan en mejoras reales. Una Justicia 2030 más accesible, comprensible y centrada en quienes la utilizan.",
+  "foco-procesos": "Tu visión pone el foco en transformar la forma de trabajar de la Justicia. Tus elecciones apuntan a simplificar procesos, reducir duplicidades y tareas de poco valor y conseguir que la información y las actuaciones fluyan de forma más ágil. Una Justicia 2030 más sencilla, eficiente y orientada a resultados.",
+  "foco-tecnologia": "Tu visión identifica la tecnología como una palanca clave para la evolución de la Justicia. Tus elecciones ponen el foco en conectar sistemas, aprovechar mejor los datos y desarrollar nuevas capacidades digitales que faciliten el trabajo y la prestación del servicio. Una Justicia 2030 más conectada, interoperable e inteligente.",
+  "foco-gobernanza": "Tu visión pone el foco en cómo gobernamos y dirigimos la transformación. Tus elecciones reflejan la importancia de establecer criterios comunes, coordinar actores, medir resultados y garantizar que datos, tecnología e innovación evolucionen de forma segura y sostenible. Una Justicia 2030 más coordinada, confiable y preparada para evolucionar.",
+  "vision-integral": "Tu visión de Justicia 2030 es transversal. Tus elecciones reflejan que la transformación no depende de una única palanca, sino de combinar personas, procesos, tecnología y gobernanza. Una Justicia 2030 que evoluciona de forma equilibrada, mejorando la experiencia, la forma de trabajar, las capacidades digitales y la gestión del cambio.",
+};
+
+export function isInterpretationResultCode(value: unknown): value is InterpretationResultCode {
+  return typeof value === "string" && Object.hasOwn(individualResultTextsV1, value);
+}

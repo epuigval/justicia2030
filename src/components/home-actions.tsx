@@ -3,17 +3,26 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { storageKeys, workshopConfig } from "@/config/workshop";
+import { individualResumeHref } from "@/domain/individual-flow";
 import { totalSelected } from "@/domain/selections";
+import { createIndividualStorageAdapter } from "@/persistence/individual-storage";
 import { createStorageAdapter } from "@/persistence/storage";
 
 export function HomeActions() {
-  const [session, setSession] = useState({ ready: false, hasSelections: false });
+  const [session, setSession] = useState({ ready: false, hasSelections: false, individualHref: "/individual", hasIndividual: false });
   const [notice, setNotice] = useState("");
 
   useEffect(() => {
     const result = createStorageAdapter(window.localStorage, storageKeys.team).read(workshopConfig);
+    const individualResult = createIndividualStorageAdapter(window.localStorage).read();
+    const individual = individualResult.ok && individualResult.value && !individualResult.value.completed ? individualResult.value : null;
     const timer = window.setTimeout(() => {
-      setSession({ ready: true, hasSelections: result.ok && (result.value.collectiveId !== null || totalSelected(result.value.selectionsByPhase) > 0) });
+      setSession({
+        ready: true,
+        hasSelections: result.ok && (result.value.collectiveId !== null || totalSelected(result.value.selectionsByPhase) > 0),
+        individualHref: individual ? individualResumeHref(individual) : "/individual",
+        hasIndividual: Boolean(individual),
+      });
       setNotice(result.ok ? "" : result.message);
     }, 0);
     return () => window.clearTimeout(timer);
@@ -25,7 +34,10 @@ export function HomeActions() {
       {notice ? <p className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-amber-950" role="status">{notice}</p> : null}
       <div className="flex flex-wrap gap-3">
         <Link href="/team" className="flex min-h-12 items-center rounded-xl bg-blue-700 px-6 font-black text-white shadow-sm focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-blue-600">
-          {session.hasSelections ? "Continuar partida" : "Iniciar como equipo"}
+          {session.hasSelections ? "Continuar dinámica actual" : "Dinámica actual"}
+        </Link>
+        <Link href={session.individualHref} className="flex min-h-12 items-center rounded-xl border-2 border-blue-700 bg-white px-6 font-black text-blue-800 shadow-sm focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-blue-600">
+          {session.hasIndividual ? "Continuar participación individual" : "Participación individual"}
         </Link>
       </div>
       <Link href="/facilitator" className="inline-flex min-h-11 items-center rounded-lg px-1 font-bold text-blue-800 underline decoration-2 underline-offset-4 focus-visible:outline-3">Iniciar como dinamizador</Link>

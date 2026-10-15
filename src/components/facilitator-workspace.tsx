@@ -6,7 +6,7 @@ import { WorkshopProvider, useWorkshop } from "@/context/workshop-context";
 import { getCard, orderedPhases } from "@/domain/catalog";
 import type { WorkshopCard } from "@/domain/types";
 import { AppShell } from "./app-shell";
-import { CardDetailModal } from "./card-detail-modal";
+import { WorkshopCardDetailModal } from "./card-detail-modal";
 import { Justicia2030 } from "./justicia-2030";
 import { LoadingState } from "./loading-state";
 import { StorageNotice } from "./notice";
@@ -32,7 +32,7 @@ function FacilitatorContent() {
         <div className="mt-8" role="tabpanel">
           <PhaseExplorer key={activePhase} phaseId={activePhase} onOpenDetail={(card: WorkshopCard) => setDetailCardId(card.id)} onPreviousPhase={previousPhase ? () => { setActivePhase(previousPhase.id); setDetailCardId(null); } : undefined} onNextPhase={nextPhase ? () => { setActivePhase(nextPhase.id); setDetailCardId(null); } : undefined} />
         </div>
-        {detailCard ? <CardDetailModal card={detailCard} onClose={() => setDetailCardId(null)} /> : null}
+        {detailCard ? <WorkshopCardDetailModal card={detailCard} onClose={() => setDetailCardId(null)} /> : null}
         <div className="mt-8">
           <ResetConfirm triggerLabel="Comenzar nueva sesión" title="Nueva sesión" message="Se eliminarán las selecciones del dinamizador guardadas en este navegador. No afectará a los equipos ni a otros dispositivos. Esta acción no se puede deshacer." confirmLabel="Empezar nueva sesión" onConfirm={() => { reset(); setActivePhase(phases[0]?.id ?? ""); setDetailCardId(null); }} modal triggerClassName="rounded-lg border border-[#114dcd] bg-white px-4 py-2 text-sm font-semibold leading-5 text-[#114dcd] shadow-[0_1px_1px_rgba(0,0,0,0.05)] focus-visible:outline-3" />
         </div>

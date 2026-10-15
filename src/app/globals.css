@@ -6,6 +6,8 @@ html { scroll-behavior: smooth; }
 body { margin: 0; font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #f8fafc; }
 button, a { -webkit-tap-highlight-color: transparent; }
 button:disabled { opacity: 1; }
+:where(a[href], button:not(:disabled), select:not(:disabled), summary, [role="button"]:not([aria-disabled="true"])) { cursor: pointer; }
+:where(button:disabled, select:disabled, [aria-disabled="true"]) { cursor: not-allowed; }
 .accent-orange { border-top-color: #f97316; }
 .accent-green { border-top-color: #16a34a; }
 .accent-blue { border-top-color: #2563eb; }
