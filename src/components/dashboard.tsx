@@ -5,6 +5,8 @@ import type {
   DashboardDto,
   DashboardPhasePrioritiesDto,
 } from "@/domain/dashboard";
+import { DashboardCollectivePriorities } from "./dashboard-collective-priorities";
+import { DashboardPriorityItem } from "./dashboard-priority-item";
 
 export type DashboardOrigin = "home" | "result" | null;
 
@@ -49,22 +51,10 @@ function PriorityList({ phase }: { phase: DashboardPhasePrioritiesDto }) {
   }
 
   return (
-    <ol className="mt-5 space-y-3">
+    <ol className="mt-4 divide-y divide-slate-200">
       {phase.priorities.map((priority) => (
-        <li key={priority.cardId} className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-          <div className="flex gap-3">
-            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-950 text-sm font-black text-white" aria-label={`Posición ${priority.rank}`}>
-              {priority.rank}
-            </span>
-            <div className="min-w-0 flex-1">
-              <p className="font-bold leading-6 text-slate-950">{priority.title}</p>
-              <p className="mt-1 text-sm text-slate-600">
-                {numberFormatter.format(priority.selectionCount)} {priority.selectionCount === 1 ? "selección" : "selecciones"}
-                <span aria-hidden="true"> · </span>
-                <span>{percentageFormatter.format(priority.participantPercentage)}% de participantes</span>
-              </p>
-            </div>
-          </div>
+        <li key={priority.cardId}>
+          <DashboardPriorityItem priority={priority} accent={phase.accent} />
         </li>
       ))}
     </ol>
@@ -75,9 +65,9 @@ function PhasePrioritiesGrid({ phases }: { phases: DashboardPhasePrioritiesDto[]
   return (
     <div className="mt-6 grid gap-5 lg:grid-cols-3">
       {phases.map((phase) => (
-        <article key={phase.phaseId} className={`rounded-2xl border border-slate-200 border-t-4 bg-white p-5 shadow-sm ${accentClasses[phase.accent]}`}>
+        <article key={phase.phaseId} aria-labelledby={`global-priorities-${phase.phaseId}`} className={`rounded-2xl border border-slate-200 border-t-4 bg-white p-5 shadow-sm ${accentClasses[phase.accent]}`}>
           <p className="text-xs font-black uppercase tracking-[0.15em] text-slate-500">Fase {phase.phaseOrder}</p>
-          <h3 className="mt-2 text-xl font-black text-blue-950">{phase.phaseName}</h3>
+          <h3 id={`global-priorities-${phase.phaseId}`} className="mt-2 text-xl font-black text-blue-950">{phase.phaseName}</h3>
           <PriorityList phase={phase} />
         </article>
       ))}
@@ -85,43 +75,21 @@ function PhasePrioritiesGrid({ phases }: { phases: DashboardPhasePrioritiesDto[]
   );
 }
 
-function CollectivePriorities({ collective }: { collective: DashboardCollectiveMetricsDto }) {
-  return (
-    <details className="group rounded-2xl border border-slate-200 bg-white shadow-sm">
-      <summary className="flex min-h-16 list-none items-center justify-between gap-4 rounded-2xl px-5 py-4 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-blue-600 [&::-webkit-details-marker]:hidden">
-        <span>
-          <span className="block font-black text-blue-950">{collective.collectiveName}</span>
-          <span className="mt-1 block text-sm text-slate-600">
-            {numberFormatter.format(collective.completedParticipations)} {collective.completedParticipations === 1 ? "participación completada" : "participaciones completadas"}
-          </span>
-        </span>
-        <span className="text-2xl font-light text-blue-800 transition-transform group-open:rotate-45" aria-hidden="true">+</span>
-      </summary>
-      <div className="border-t border-slate-200 px-5 pb-6">
-        {collective.completedParticipations === 0 ? (
-          <p className="mt-5 rounded-xl bg-slate-50 p-4 text-slate-600">Este colectivo no tiene participaciones completadas en el periodo seleccionado.</p>
-        ) : (
-          <PhasePrioritiesGrid phases={collective.phasePriorities} />
-        )}
-      </div>
-    </details>
-  );
-}
-
 function CategoryDistribution({ collective }: { collective: DashboardCollectiveMetricsDto }) {
   return (
-    <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-      <h3 className="text-lg font-black text-blue-950">{collective.collectiveName}</h3>
+    <article className="flex h-full flex-col rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <h3 className="min-h-14 text-lg font-black leading-7 text-blue-950">{collective.collectiveName}</h3>
       {collective.totalSelections === 0 ? (
-        <p className="mt-4 text-sm leading-6 text-slate-600">Sin selecciones completadas en este periodo.</p>
+        <p className="mt-3 text-sm font-bold leading-6 text-slate-500">Sin datos</p>
       ) : (
-        <div className="mt-5 space-y-4">
+        <div className="mt-4 flex-1 space-y-4">
           {collective.categoryDistribution.map((category) => (
             <div key={category.categoryId}>
-              <div className="flex items-end justify-between gap-3 text-sm">
+              <div className="flex items-end justify-between gap-3 text-sm leading-5">
                 <span className="font-bold text-slate-800">{category.categoryName}</span>
-                <span className="shrink-0 text-slate-600">
-                  {percentageFormatter.format(category.percentage)}% · {numberFormatter.format(category.selectionCount)}
+                <span className="shrink-0 text-right">
+                  <strong className="font-black text-blue-950">{percentageFormatter.format(category.percentage)}%</strong>
+                  <span className="ml-2 text-xs text-slate-500">{numberFormatter.format(category.selectionCount)} selecciones</span>
                 </span>
               </div>
               <div className="mt-2 h-2.5 overflow-hidden rounded-full bg-slate-200">
@@ -219,10 +187,8 @@ export function DashboardView({ data, from, to, origin, error }: DashboardViewPr
 
               <section className="mt-12" aria-labelledby="collective-priorities-title">
                 <h2 id="collective-priorities-title" className="text-2xl font-black text-blue-950">Prioridades por colectivo</h2>
-                <p className="mt-2 leading-7 text-slate-600">Abre cada colectivo para consultar sus tres primeras posiciones por fase.</p>
-                <div className="mt-6 space-y-4">
-                  {data.collectiveMetrics.map((collective) => <CollectivePriorities key={collective.collectiveId} collective={collective} />)}
-                </div>
+                <p className="mt-2 leading-7 text-slate-600">Consulta las prioridades más seleccionadas por cada colectivo en cada fase.</p>
+                <DashboardCollectivePriorities collectives={data.collectiveMetrics} phases={data.globalPhasePriorities} />
               </section>
 
               <section className="mt-12" aria-labelledby="category-distribution-title">
