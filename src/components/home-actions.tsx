@@ -13,7 +13,12 @@ type ParticipationMode = "team" | "individual" | "facilitator";
 export function HomeActions() {
   const router = useRouter();
   const [mode, setMode] = useState<ParticipationMode | "">("");
-  const [session, setSession] = useState({ ready: false, individualHref: "/individual", individualStatus: "none" as "none" | "started" | "completed" });
+  const [session, setSession] = useState({
+    ready: false,
+    teamStarted: false,
+    individualHref: "/individual",
+    individualStatus: "none" as "none" | "started" | "completed",
+  });
   const [notice, setNotice] = useState("");
 
   useEffect(() => {
@@ -23,6 +28,7 @@ export function HomeActions() {
     const timer = window.setTimeout(() => {
       setSession({
         ready: true,
+        teamStarted: result.ok && Boolean(result.value.collectiveId),
         individualHref: storedIndividual ? individualResumeHref(storedIndividual) : "/individual",
         individualStatus: storedIndividual?.completed ? "completed" : storedIndividual ? "started" : "none",
       });
@@ -34,7 +40,7 @@ export function HomeActions() {
   if (!session.ready) return <p className="mt-8 font-semibold text-slate-600" aria-live="polite">Comprobando la sesión guardada…</p>;
 
   const action = mode === "team"
-    ? { label: "Iniciar partida", href: "/team" }
+    ? { label: session.teamStarted ? "Continuar partida" : "Iniciar partida", href: "/team" }
     : mode === "facilitator"
       ? { label: "Iniciar partida", href: "/facilitator" }
       : mode === "individual"

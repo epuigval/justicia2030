@@ -10,7 +10,7 @@ import { IndividualPhase } from "@/components/individual-phase";
 import { IndividualResult } from "@/components/individual-result";
 import { IndividualStart } from "@/components/individual-start";
 import { individualResultTextsV1 } from "@/config/individual-results";
-import { workshopConfig } from "@/config/workshop";
+import { storageKeys, workshopConfig } from "@/config/workshop";
 import { IndividualProvider, useIndividualParticipation } from "@/context/individual-context";
 import type { IndividualCatalog, IndividualSessionState } from "@/domain/individual-flow";
 import { INDIVIDUAL_STORAGE_KEY } from "@/persistence/individual-storage";
@@ -186,6 +186,23 @@ describe("entrada y cabecera Individual", () => {
     await user.click(screen.getByRole("button", { name: "Iniciar partida" }));
     expect(navigation.push).toHaveBeenLastCalledWith("/facilitator");
     expect(localStorage.getItem(INDIVIDUAL_STORAGE_KEY)).toBe(persisted);
+  });
+
+  it("muestra Continuar partida para un Equipo que ya eligió colectivo", async () => {
+    localStorage.setItem(storageKeys.team, JSON.stringify({
+      schemaVersion: 4,
+      sessionId: credentials.participationId,
+      selectionsByPhase: Object.fromEntries(workshopConfig.phases.map((phase) => [phase.id, []])),
+      collectiveId: workshopConfig.collectives[0].id,
+      sentPhaseIds: [],
+    }));
+    const user = userEvent.setup();
+    render(<HomeActions />);
+
+    await user.selectOptions(await screen.findByLabelText("Elige cómo quieres participar"), "team");
+    await user.click(screen.getByRole("button", { name: "Continuar partida" }));
+
+    expect(navigation.push).toHaveBeenCalledWith("/team");
   });
 
   it("inicia Individual sin estado local", async () => {
