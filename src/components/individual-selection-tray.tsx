@@ -27,7 +27,7 @@ export function IndividualSelectionTray({ phaseId, selectedIds, nextLabel, onRem
       </div>
       <p className="mt-2 text-xs font-semibold text-[#1d4ed8]">{selectedIds.length}/3 tarjetas</p>
 
-      {selectedIds.length === 0 ? <p className="mt-5 text-xs leading-5 text-[#565656]">Selecciona exactamente tres tarjetas para continuar.</p> : (
+      {selectedIds.length === 0 ? <p className="mt-5 text-xs leading-5 text-[#565656]">Aún no has seleccionado ninguna tarjeta.</p> : (
         <ul className="mt-5 space-y-3">
           {selectedIds.map((id) => {
             const card = getCard(workshopConfig, id);

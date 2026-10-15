@@ -60,7 +60,7 @@ export function IndividualStart({ catalog, catalogUnavailable = false }: { catal
       }
 
       start({ ...credentials, collectiveId, subprofileId: subprofileId || null });
-      router.push("/individual/phase/justicia-actual");
+      router.push("/individual/overview");
     } catch {
       setError("No se pudo conectar con el servicio. Inténtalo de nuevo.");
     } finally {

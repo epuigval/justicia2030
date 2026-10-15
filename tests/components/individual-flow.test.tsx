@@ -1,9 +1,11 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import HomePage from "@/app/page";
 import IndividualLayout from "@/app/individual/layout";
 import { AppShell } from "@/components/app-shell";
 import { HomeActions } from "@/components/home-actions";
+import { IndividualOverview } from "@/components/individual-overview";
 import { IndividualPhase } from "@/components/individual-phase";
 import { IndividualResult } from "@/components/individual-result";
 import { IndividualStart } from "@/components/individual-start";
@@ -107,7 +109,7 @@ describe("inicio Individual", () => {
       collectiveId: "universidad-talento-joven",
       subprofileId: null,
     });
-    expect(navigation.push).toHaveBeenCalledWith("/individual/phase/justicia-actual");
+    expect(navigation.push).toHaveBeenCalledWith("/individual/overview");
     await waitFor(() => expect(localStorage.getItem(INDIVIDUAL_STORAGE_KEY)).not.toBeNull());
     expect(fetchMock.mock.calls.some(([url]) => url === "/api/send-phase-result")).toBe(false);
   });
@@ -133,6 +135,13 @@ describe("inicio Individual", () => {
     render(<IndividualProvider><ReloadProbe /></IndividualProvider>);
     expect(await screen.findByText(`${credentials.participationId}:1`)).toBeInTheDocument();
   });
+
+  it("redirige una participación started existente a la Vista principal", async () => {
+    localStorage.setItem(INDIVIDUAL_STORAGE_KEY, JSON.stringify(persistedState()));
+    render(<IndividualProvider><IndividualStart catalog={catalog} /></IndividualProvider>);
+
+    await waitFor(() => expect(navigation.replace).toHaveBeenCalledWith("/individual/overview"));
+  });
 });
 
 describe("entrada y cabecera Individual", () => {
@@ -147,40 +156,114 @@ describe("entrada y cabecera Individual", () => {
     expect(screen.getByText("JUSTICIA")).toBeInTheDocument();
   });
 
-  it("muestra entrada nueva cuando no hay participación Individual", async () => {
-    render(<HomeActions />);
-    const link = await screen.findByRole("link", { name: "Participación individual" });
-    expect(link).toHaveAttribute("href", "/individual");
-    expect(screen.getByRole("link", { name: "Consultar métricas" })).toHaveAttribute("href", "/dashboard?origin=home");
-    expect(screen.getByRole("link", { name: "Iniciar como equipo" })).toHaveAttribute("href", "/team");
-    expect(screen.getByRole("link", { name: "Iniciar como dinamizador" })).toHaveAttribute("href", "/facilitator");
+  it("muestra el nuevo copy, selector, placeholder y las tres modalidades", async () => {
+    render(<HomePage />);
+
+    expect(screen.getByText("Explora las propuestas y selecciona 3 prioridades por cada fase para construir tu visión de la justicia del futuro.")).toBeInTheDocument();
+    const select = await screen.findByLabelText("Elige cómo quieres participar");
+    expect(select).toHaveValue("");
+    expect(within(select).getByRole("option", { name: "Seleccionar una opción" })).toBeInTheDocument();
+    expect(within(select).getByRole("option", { name: "Equipo" })).toBeInTheDocument();
+    expect(within(select).getByRole("option", { name: "Participante individual" })).toBeInTheDocument();
+    expect(within(select).getByRole("option", { name: "Dinamizador" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Iniciar partida" })).toBeDisabled();
+    expect(screen.getByRole("link", { name: "Ver resultados generales" })).toHaveAttribute("href", "/dashboard?origin=home");
   });
 
-  it("reanuda en la primera fase incompleta", async () => {
+  it("inicia Equipo y Dinamizador sin borrar la participación Individual", async () => {
+    const persisted = JSON.stringify(persistedState());
+    localStorage.setItem(INDIVIDUAL_STORAGE_KEY, persisted);
+    const user = userEvent.setup();
+    render(<HomeActions />);
+
+    const select = await screen.findByLabelText("Elige cómo quieres participar");
+    await user.selectOptions(select, "team");
+    await user.click(screen.getByRole("button", { name: "Iniciar partida" }));
+    expect(navigation.push).toHaveBeenLastCalledWith("/team");
+    expect(localStorage.getItem(INDIVIDUAL_STORAGE_KEY)).toBe(persisted);
+
+    await user.selectOptions(select, "facilitator");
+    await user.click(screen.getByRole("button", { name: "Iniciar partida" }));
+    expect(navigation.push).toHaveBeenLastCalledWith("/facilitator");
+    expect(localStorage.getItem(INDIVIDUAL_STORAGE_KEY)).toBe(persisted);
+  });
+
+  it("inicia Individual sin estado local", async () => {
+    const user = userEvent.setup();
+    render(<HomeActions />);
+
+    await user.selectOptions(await screen.findByLabelText("Elige cómo quieres participar"), "individual");
+    await user.click(screen.getByRole("button", { name: "Iniciar partida" }));
+    expect(navigation.push).toHaveBeenCalledWith("/individual");
+  });
+
+  it("continúa una participación Individual started desde la Vista principal", async () => {
+    localStorage.setItem(INDIVIDUAL_STORAGE_KEY, JSON.stringify(persistedState({ selectionsByPhase: selectedCardIds() })));
+    const user = userEvent.setup();
+
+    render(<HomeActions />);
+    await user.selectOptions(await screen.findByLabelText("Elige cómo quieres participar"), "individual");
+    await user.click(screen.getByRole("button", { name: "Continuar partida" }));
+    expect(navigation.push).toHaveBeenCalledWith("/individual/overview");
+  });
+
+  it("muestra el resultado conservado de una participación Individual completed", async () => {
+    localStorage.setItem(INDIVIDUAL_STORAGE_KEY, JSON.stringify(completedState()));
+    const user = userEvent.setup();
+
+    render(<HomeActions />);
+    await user.selectOptions(await screen.findByLabelText("Elige cómo quieres participar"), "individual");
+    await user.click(screen.getByRole("button", { name: "Ver resultado" }));
+    expect(navigation.push).toHaveBeenCalledWith("/individual/result");
+  });
+});
+
+describe("Vista principal Individual", () => {
+  it("muestra las tres fases, conserva selecciones y respeta el acceso secuencial", async () => {
     const selectionsByPhase = persistedState().selectionsByPhase;
     selectionsByPhase["justicia-actual"] = ["justicia-actual-tarjeta-1", "justicia-actual-tarjeta-2", "justicia-actual-tarjeta-3"];
     selectionsByPhase["justicia-conectada"] = ["justicia-conectada-tarjeta-1"];
     localStorage.setItem(INDIVIDUAL_STORAGE_KEY, JSON.stringify(persistedState({ selectionsByPhase })));
 
-    render(<HomeActions />);
-    const link = await screen.findByRole("link", { name: "Continuar participación individual" });
-    expect(link).toHaveAttribute("href", "/individual/phase/justicia-conectada");
+    render(<IndividualProvider><IndividualOverview /></IndividualProvider>);
+
+    expect(await screen.findByRole("heading", { name: "Tu camino hacia Justicia 2030" })).toBeInTheDocument();
+    for (const phase of workshopConfig.phases) expect(screen.getByRole("heading", { name: phase.name })).toBeInTheDocument();
+    expect(screen.getByText(workshopConfig.cards.find((card) => card.id === "justicia-actual-tarjeta-1")!.title)).toBeInTheDocument();
+    expect(screen.getByText(workshopConfig.cards.find((card) => card.id === "justicia-conectada-tarjeta-1")!.title)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Revisar selección" })).toHaveAttribute("href", "/individual/phase/justicia-actual");
+    expect(screen.getByRole("link", { name: "Entrar en la fase" })).toHaveAttribute("href", "/individual/phase/justicia-conectada");
+    expect(screen.getByRole("heading", { name: "Justicia Inteligente" }).closest("article")!.querySelector("a")).toBeNull();
+    await waitFor(() => expect(JSON.parse(localStorage.getItem(INDIVIDUAL_STORAGE_KEY)!).selectionsByPhase).toEqual(selectionsByPhase));
   });
 
-  it("reanuda en resultado cuando ya existen nueve selecciones", async () => {
+  it("permite ir al resultado cuando las nueve selecciones están completas", async () => {
     localStorage.setItem(INDIVIDUAL_STORAGE_KEY, JSON.stringify(persistedState({ selectionsByPhase: selectedCardIds() })));
-    render(<HomeActions />);
-    const link = await screen.findByRole("link", { name: "Continuar participación individual" });
-    expect(link).toHaveAttribute("href", "/individual/result");
+    render(<IndividualProvider><IndividualOverview /></IndividualProvider>);
+
+    expect(await screen.findByRole("link", { name: "Ver resultado" })).toHaveAttribute("href", "/individual/result");
+    expect(screen.getAllByRole("link", { name: "Revisar selección" })).toHaveLength(3);
+  });
+
+  it("redirige un resultado completed sin permitir editarlo", async () => {
+    localStorage.setItem(INDIVIDUAL_STORAGE_KEY, JSON.stringify(completedState()));
+    render(<IndividualProvider><IndividualOverview /></IndividualProvider>);
+
+    await waitFor(() => expect(navigation.replace).toHaveBeenCalledWith("/individual/result"));
+    expect(screen.queryByRole("link", { name: "Revisar selección" })).not.toBeInTheDocument();
   });
 });
 
 describe("fases Individual", () => {
   it("abre el detalle sin depender de WorkshopProvider", async () => {
-    localStorage.setItem(INDIVIDUAL_STORAGE_KEY, JSON.stringify(persistedState()));
+    const persisted = JSON.stringify(persistedState());
+    localStorage.setItem(INDIVIDUAL_STORAGE_KEY, persisted);
     const user = userEvent.setup();
     render(<IndividualProvider><IndividualPhase phaseId="justicia-actual" /></IndividualProvider>);
 
+    expect(await screen.findByRole("link", { name: "← Volver a Vista principal" })).toHaveAttribute("href", "/individual/overview");
+    expect(screen.getByText("Aún no has seleccionado ninguna tarjeta.")).toBeInTheDocument();
+    expect(localStorage.getItem(INDIVIDUAL_STORAGE_KEY)).toBe(persisted);
     await user.click((await screen.findAllByRole("button", { name: "Ver detalle" }))[0]);
     const card = workshopConfig.cards.find((item) => item.phaseId === "justicia-actual")!;
     const dialog = screen.getByRole("dialog", { name: `Detalle de ${card.title}` });
@@ -370,7 +453,7 @@ describe("resultado Individual", () => {
     expect(screen.queryByRole("button", { name: "Finalizar" })).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "Modificar selección" })).not.toBeInTheDocument();
     expect(screen.queryByText("Participación completada")).not.toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Ver métricas" })).toHaveAttribute("href", "/dashboard?origin=result");
+    expect(screen.getByRole("link", { name: "Ver resultados generales" })).toHaveAttribute("href", "/dashboard?origin=result");
   });
 
   it("recupera completed tras recarga, queda en solo lectura y permite iniciar otra participación", async () => {
@@ -385,7 +468,7 @@ describe("resultado Individual", () => {
     expect(screen.getAllByRole("listitem")).toHaveLength(9);
     expect(screen.queryByRole("link", { name: "Modificar selección" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Finalizar" })).not.toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Ver métricas" })).toHaveAttribute("href", "/dashboard?origin=result");
+    expect(screen.getByRole("link", { name: "Ver resultados generales" })).toHaveAttribute("href", "/dashboard?origin=result");
     expect(screen.queryByText("Participación completada")).not.toBeInTheDocument();
     expect(fetchMock).not.toHaveBeenCalled();
 

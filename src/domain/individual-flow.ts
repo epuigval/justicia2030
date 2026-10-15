@@ -50,7 +50,5 @@ export function hasCompleteIndividualSelections(selections: SelectionsByPhase): 
 }
 
 export function individualResumeHref(state: IndividualSessionState): string {
-  if (hasCompleteIndividualSelections(state.selectionsByPhase)) return "/individual/result";
-  const phaseId = firstIncompleteIndividualPhase(state.selectionsByPhase) ?? INDIVIDUAL_PHASE_IDS[0];
-  return `/individual/phase/${phaseId}`;
+  return state.completed ? "/individual/result" : "/individual/overview";
 }

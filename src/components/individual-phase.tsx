@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { CardDetailModal } from "@/components/card-detail-modal";
@@ -75,7 +76,8 @@ export function IndividualPhase({ phaseId, returnToResult = false }: { phaseId: 
   return (
     <main className="mx-auto w-full max-w-[var(--container-7xl)] px-3 py-8 sm:px-6">
       <section className="rounded-[20px] border border-[#d2d2d2] bg-white p-8 sm:p-10 lg:p-12" aria-labelledby={`individual-phase-${phaseId}`}>
-        <p className="text-sm font-bold uppercase tracking-[0.6px] text-[#114dcd]">Participación individual</p>
+        <Link href="/individual/overview" className="inline-flex min-h-10 items-center rounded-lg font-bold text-[#114dcd] focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[#114dcd]">← Volver a Vista principal</Link>
+        <p className="mt-3 text-sm font-bold uppercase tracking-[0.6px] text-[#114dcd]">Participación individual</p>
         <h1 id={`individual-phase-${phaseId}`} className={`mt-3 flex min-h-[62px] items-center rounded-xl border-l-4 px-4 text-2xl font-bold tracking-[-0.5px] text-[#0a0a0a] sm:text-[32px] ${accentStyles[phase.accent]}`}>FASE {phase.order} - {phase.name}</h1>
         <p className="mt-3 text-sm leading-6 text-[#0a0a0a]">Selecciona exactamente tres prioridades. Puedes consultar el detalle antes de elegir.</p>
 

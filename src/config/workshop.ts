@@ -389,7 +389,7 @@ const cards: WorkshopCard[] = [
 
 export const workshopConfig: WorkshopConfig = {
   title: "Justicia 2030",
-  intro: "Explorad las etapas del workshop, debatid las propuestas y seleccionad 3 tarjetas por etapa para construir una visión compartida de la Justicia 2030.",
+  intro: "Explora las propuestas y selecciona 3 prioridades por cada fase para construir tu visión de la justicia del futuro.",
   maxSelectionsPerPhase: 3,
   collectives: [
   {
