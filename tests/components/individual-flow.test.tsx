@@ -219,7 +219,7 @@ describe("entrada y cabecera Individual", () => {
 });
 
 describe("Vista principal Individual", () => {
-  it("muestra las tres fases, conserva selecciones y respeta el acceso secuencial", async () => {
+  it("muestra Ver tarjetas en las tres fases, permite abrirlas y conserva selecciones", async () => {
     const selectionsByPhase = persistedState().selectionsByPhase;
     selectionsByPhase["justicia-actual"] = ["justicia-actual-tarjeta-1", "justicia-actual-tarjeta-2", "justicia-actual-tarjeta-3"];
     selectionsByPhase["justicia-conectada"] = ["justicia-conectada-tarjeta-1"];
@@ -231,9 +231,11 @@ describe("Vista principal Individual", () => {
     for (const phase of workshopConfig.phases) expect(screen.getByRole("heading", { name: phase.name })).toBeInTheDocument();
     expect(screen.getByText(workshopConfig.cards.find((card) => card.id === "justicia-actual-tarjeta-1")!.title)).toBeInTheDocument();
     expect(screen.getByText(workshopConfig.cards.find((card) => card.id === "justicia-conectada-tarjeta-1")!.title)).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Revisar selección" })).toHaveAttribute("href", "/individual/phase/justicia-actual");
-    expect(screen.getByRole("link", { name: "Entrar en la fase" })).toHaveAttribute("href", "/individual/phase/justicia-conectada");
-    expect(screen.getByRole("heading", { name: "Justicia Inteligente" }).closest("article")!.querySelector("a")).toBeNull();
+    const phaseLinks = screen.getAllByRole("link", { name: "Ver tarjetas" });
+    expect(phaseLinks).toHaveLength(3);
+    expect(phaseLinks[0]).toHaveAttribute("href", "/individual/phase/justicia-actual");
+    expect(phaseLinks[1]).toHaveAttribute("href", "/individual/phase/justicia-conectada");
+    expect(phaseLinks[2]).toHaveAttribute("href", "/individual/phase/justicia-inteligente");
     await waitFor(() => expect(JSON.parse(localStorage.getItem(INDIVIDUAL_STORAGE_KEY)!).selectionsByPhase).toEqual(selectionsByPhase));
   });
 
@@ -242,7 +244,7 @@ describe("Vista principal Individual", () => {
     render(<IndividualProvider><IndividualOverview /></IndividualProvider>);
 
     expect(await screen.findByRole("link", { name: "Ver resultado" })).toHaveAttribute("href", "/individual/result");
-    expect(screen.getAllByRole("link", { name: "Revisar selección" })).toHaveLength(3);
+    expect(screen.getAllByRole("link", { name: "Ver tarjetas" })).toHaveLength(3);
   });
 
   it("redirige un resultado completed sin permitir editarlo", async () => {
@@ -250,7 +252,7 @@ describe("Vista principal Individual", () => {
     render(<IndividualProvider><IndividualOverview /></IndividualProvider>);
 
     await waitFor(() => expect(navigation.replace).toHaveBeenCalledWith("/individual/result"));
-    expect(screen.queryByRole("link", { name: "Revisar selección" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Ver tarjetas" })).not.toBeInTheDocument();
   });
 });
 
@@ -261,7 +263,7 @@ describe("fases Individual", () => {
     const user = userEvent.setup();
     render(<IndividualProvider><IndividualPhase phaseId="justicia-actual" /></IndividualProvider>);
 
-    expect(await screen.findByRole("link", { name: "← Volver a Vista principal" })).toHaveAttribute("href", "/individual/overview");
+    expect(await screen.findByRole("link", { name: "Volver a Vista Principal" })).toHaveAttribute("href", "/individual/overview");
     expect(screen.getByText("Aún no has seleccionado ninguna tarjeta.")).toBeInTheDocument();
     expect(localStorage.getItem(INDIVIDUAL_STORAGE_KEY)).toBe(persisted);
     await user.click((await screen.findAllByRole("button", { name: "Ver detalle" }))[0]);
@@ -292,14 +294,14 @@ describe("fases Individual", () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it("usa Ver resultado al completar las nueve selecciones por primera vez", async () => {
+  it("usa Ver resultado al completar la última fase pendiente aunque sea la fase 1", async () => {
     const selectionsByPhase = selectedCardIds();
-    selectionsByPhase["justicia-inteligente"] = selectionsByPhase["justicia-inteligente"].slice(0, 2);
-    localStorage.setItem(INDIVIDUAL_STORAGE_KEY, JSON.stringify(persistedState({ selectionsByPhase, currentPhaseId: "justicia-inteligente" })));
+    selectionsByPhase["justicia-actual"] = selectionsByPhase["justicia-actual"].slice(0, 2);
+    localStorage.setItem(INDIVIDUAL_STORAGE_KEY, JSON.stringify(persistedState({ selectionsByPhase, currentPhaseId: "justicia-actual" })));
     const user = userEvent.setup();
-    render(<IndividualProvider><IndividualPhase phaseId="justicia-inteligente" /></IndividualProvider>);
+    render(<IndividualProvider><IndividualPhase phaseId="justicia-actual" /></IndividualProvider>);
 
-    const replacement = workshopConfig.cards.find((card) => card.phaseId === "justicia-inteligente" && !selectionsByPhase["justicia-inteligente"].includes(card.id))!;
+    const replacement = workshopConfig.cards.find((card) => card.phaseId === "justicia-actual" && !selectionsByPhase["justicia-actual"].includes(card.id))!;
     const replacementArticle = (await screen.findByRole("heading", { name: replacement.title })).closest("article")!;
     await user.click(within(replacementArticle).getByRole("button", { name: "Seleccionar" }));
 
@@ -309,10 +311,40 @@ describe("fases Individual", () => {
     expect(navigation.push).toHaveBeenCalledWith("/individual/result");
   });
 
-  it("impide saltar una fase incompleta", async () => {
+  it("permite entrar directamente en las fases 2 y 3", async () => {
     localStorage.setItem(INDIVIDUAL_STORAGE_KEY, JSON.stringify(persistedState()));
+    const connected = render(<IndividualProvider><IndividualPhase phaseId="justicia-conectada" /></IndividualProvider>);
+    expect(await screen.findByRole("heading", { name: /FASE 2 - Justicia Conectada/ })).toBeInTheDocument();
+    expect(navigation.replace).not.toHaveBeenCalledWith("/individual/phase/justicia-actual");
+
+    connected.unmount();
+    render(<IndividualProvider><IndividualPhase phaseId="justicia-inteligente" /></IndividualProvider>);
+    expect(await screen.findByRole("heading", { name: /FASE 3 - Justicia Inteligente/ })).toBeInTheDocument();
+    expect(navigation.replace).not.toHaveBeenCalledWith("/individual/phase/justicia-actual");
+  });
+
+  it("hace wrap y avanza desde la fase 3 a la siguiente fase incompleta", async () => {
+    const selectionsByPhase = persistedState().selectionsByPhase;
+    selectionsByPhase["justicia-inteligente"] = selectedCardIds()["justicia-inteligente"];
+    localStorage.setItem(INDIVIDUAL_STORAGE_KEY, JSON.stringify(persistedState({ selectionsByPhase, currentPhaseId: "justicia-inteligente" })));
+    const user = userEvent.setup();
+    render(<IndividualProvider><IndividualPhase phaseId="justicia-inteligente" /></IndividualProvider>);
+
+    await user.click(await screen.findByRole("button", { name: "Continuar a la siguiente fase" }));
+    expect(navigation.push).toHaveBeenCalledWith("/individual/phase/justicia-actual");
+  });
+
+  it("salta fases completas y nunca vuelve a enviarlas como siguiente destino", async () => {
+    const selectionsByPhase = persistedState().selectionsByPhase;
+    const completeSelections = selectedCardIds();
+    selectionsByPhase["justicia-conectada"] = completeSelections["justicia-conectada"];
+    selectionsByPhase["justicia-inteligente"] = completeSelections["justicia-inteligente"];
+    localStorage.setItem(INDIVIDUAL_STORAGE_KEY, JSON.stringify(persistedState({ selectionsByPhase, currentPhaseId: "justicia-conectada" })));
+    const user = userEvent.setup();
     render(<IndividualProvider><IndividualPhase phaseId="justicia-conectada" /></IndividualProvider>);
-    await waitFor(() => expect(navigation.replace).toHaveBeenCalledWith("/individual/phase/justicia-actual"));
+
+    await user.click(await screen.findByRole("button", { name: "Continuar a la siguiente fase" }));
+    expect(navigation.push).toHaveBeenCalledWith("/individual/phase/justicia-actual");
   });
 
   it("modifica una fase completa, conserva las demás y vuelve al resultado sin escribir en remoto", async () => {

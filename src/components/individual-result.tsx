@@ -108,7 +108,7 @@ export function IndividualResult() {
           {state.completed ? (
             <>
               <button type="button" onClick={startNewParticipation} className="min-h-11 rounded-lg bg-[#114dcd] px-7 text-sm font-bold text-white focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[#114dcd]">Nueva participación</button>
-              <Link href="/dashboard?origin=result" className="flex min-h-11 items-center rounded-lg border border-[#114dcd] bg-white px-7 text-sm font-bold text-[#114dcd] focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[#114dcd]">Ver métricas</Link>
+              <Link href="/dashboard?origin=result" className="flex min-h-11 items-center rounded-lg border border-[#114dcd] bg-white px-7 text-sm font-bold text-[#114dcd] focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[#114dcd]">Ver resultados generales</Link>
             </>
           ) : (
             <>

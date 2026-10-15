@@ -10,7 +10,7 @@ import { LoadingState } from "@/components/loading-state";
 import { useIndividualParticipation } from "@/context/individual-context";
 import { workshopConfig } from "@/config/workshop";
 import { filterCards, getPhase } from "@/domain/catalog";
-import { firstIncompleteIndividualPhase, hasCompleteIndividualSelections } from "@/domain/individual-flow";
+import { hasCompleteIndividualSelections, nextIncompleteIndividualPhase } from "@/domain/individual-flow";
 import { INDIVIDUAL_PHASE_IDS, type IndividualPhaseId } from "@/domain/individual-participation";
 import type { CategoryId, WorkshopCard } from "@/domain/types";
 import { IndividualAbandonAction } from "./individual-abandon-action";
@@ -31,13 +31,10 @@ export function IndividualPhase({ phaseId, returnToResult = false }: { phaseId: 
   const { completed, hydrated, leaving, setCurrentPhase } = state;
   const phase = getPhase(workshopConfig, phaseId)!;
   const phaseIndex = INDIVIDUAL_PHASE_IDS.indexOf(phaseId);
-  const firstIncomplete = firstIncompleteIndividualPhase(state.selectionsByPhase);
-  const firstIncompleteIndex = firstIncomplete ? INDIVIDUAL_PHASE_IDS.indexOf(firstIncomplete) : -1;
   const hasParticipation = Boolean(state.participationId && state.collectiveId && (completed || state.writeToken));
-  const blockedByProgress = firstIncompleteIndex >= 0 && phaseIndex > firstIncompleteIndex;
   const selectedIds = state.selectionsByPhase[phaseId] ?? [];
   const cards = filterCards(workshopConfig, phaseId, activeFilter);
-  const nextPhaseId = INDIVIDUAL_PHASE_IDS[phaseIndex + 1];
+  const nextIncompletePhaseId = nextIncompleteIndividualPhase(state.selectionsByPhase, phaseId);
 
   useEffect(() => {
     if (!hydrated) return;
@@ -50,14 +47,10 @@ export function IndividualPhase({ phaseId, returnToResult = false }: { phaseId: 
       router.replace("/individual/result");
       return;
     }
-    if (blockedByProgress && firstIncomplete) {
-      router.replace(`/individual/phase/${firstIncomplete}`);
-      return;
-    }
     setCurrentPhase(phaseId);
-  }, [blockedByProgress, completed, firstIncomplete, hasParticipation, hydrated, leaving, phaseId, router, setCurrentPhase]);
+  }, [completed, hasParticipation, hydrated, leaving, phaseId, router, setCurrentPhase]);
 
-  if (!hydrated || leaving || !hasParticipation || completed || blockedByProgress) return <LoadingState />;
+  if (!hydrated || leaving || !hasParticipation || completed) return <LoadingState />;
 
   function continueFlow() {
     if (selectedIds.length !== 3) return;
@@ -65,21 +58,19 @@ export function IndividualPhase({ phaseId, returnToResult = false }: { phaseId: 
       router.push("/individual/result");
       return;
     }
-    if (nextPhaseId) {
-      state.setCurrentPhase(nextPhaseId);
-      router.push(`/individual/phase/${nextPhaseId}`);
-    } else {
-      router.push("/individual/result");
+    if (nextIncompletePhaseId) {
+      state.setCurrentPhase(nextIncompletePhaseId);
+      router.push(`/individual/phase/${nextIncompletePhaseId}`);
     }
   }
 
   return (
     <main className="mx-auto w-full max-w-[var(--container-7xl)] px-3 py-8 sm:px-6">
       <section className="rounded-[20px] border border-[#d2d2d2] bg-white p-8 sm:p-10 lg:p-12" aria-labelledby={`individual-phase-${phaseId}`}>
-        <Link href="/individual/overview" className="inline-flex min-h-10 items-center rounded-lg font-bold text-[#114dcd] focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[#114dcd]">← Volver a Vista principal</Link>
+        <Link href="/individual/overview" className="inline-flex items-center gap-2 text-sm font-semibold text-[#114dcd] focus-visible:outline-3"><img src="/icons/arrow_back.svg" alt="" className="size-4" />Volver a Vista Principal</Link>
         <p className="mt-3 text-sm font-bold uppercase tracking-[0.6px] text-[#114dcd]">Participación individual</p>
         <h1 id={`individual-phase-${phaseId}`} className={`mt-3 flex min-h-[62px] items-center rounded-xl border-l-4 px-4 text-2xl font-bold tracking-[-0.5px] text-[#0a0a0a] sm:text-[32px] ${accentStyles[phase.accent]}`}>FASE {phase.order} - {phase.name}</h1>
-        <p className="mt-3 text-sm leading-6 text-[#0a0a0a]">Selecciona exactamente tres prioridades. Puedes consultar el detalle antes de elegir.</p>
+        <h2 className="mt-3 text-sm leading-6 text-[#0a0a0a]">Explora la propuesta de cada tarjeta y selecciona las tres que consideres prioritarias.</h2>
 
         <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
           <CategoryFilters config={workshopConfig} active={activeFilter} onChange={setActiveFilter} />
@@ -103,7 +94,7 @@ export function IndividualPhase({ phaseId, returnToResult = false }: { phaseId: 
           <IndividualSelectionTray
             phaseId={phaseId}
             selectedIds={selectedIds}
-            nextLabel={hasCompleteIndividualSelections(state.selectionsByPhase) ? returnToResult ? "Volver al resultado" : "Ver resultado" : nextPhaseId ? "Continuar a la siguiente fase" : "Ver resultado"}
+            nextLabel={hasCompleteIndividualSelections(state.selectionsByPhase) ? returnToResult ? "Volver al resultado" : "Ver resultado" : "Continuar a la siguiente fase"}
             onRemove={(cardId) => state.toggle(phaseId, cardId)}
             onContinue={continueFlow}
           />

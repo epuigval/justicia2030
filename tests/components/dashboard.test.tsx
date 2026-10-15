@@ -17,7 +17,7 @@ describe("dashboard", () => {
     const data = aggregateDashboardMetrics({ range, participations: [], selections: [], collectives });
     const { container } = render(<DashboardView data={data} from="" to="" origin={null} />);
 
-    expect(screen.getByRole("heading", { name: "Métricas de participación" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Resultados de participación" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Sin datos en este periodo" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Volver al inicio" })).toHaveAttribute("href", "/");
     expect(container.textContent).not.toMatch(/NaN|Infinity/);
@@ -50,7 +50,7 @@ describe("dashboard", () => {
     const data = aggregateDashboardMetrics({ range, participations: [], selections: [], collectives });
     render(<DashboardView data={data} from="" to="" origin="result" />);
 
-    expect(screen.getByRole("link", { name: "Volver a resultados" })).toHaveAttribute("href", "/individual/result");
+    expect(screen.getByRole("link", { name: "Volver a resultado individual" })).toHaveAttribute("href", "/individual/result");
     expect(screen.queryByRole("button", { name: /Finalizar|Completar/ })).not.toBeInTheDocument();
   });
 

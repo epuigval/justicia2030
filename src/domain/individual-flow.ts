@@ -44,6 +44,24 @@ export function firstIncompleteIndividualPhase(selections: SelectionsByPhase): I
   return INDIVIDUAL_PHASE_IDS.find((phaseId) => (selections[phaseId] ?? []).length !== 3) ?? null;
 }
 
+export function nextIncompleteIndividualPhase(
+  selections: SelectionsByPhase,
+  currentPhaseId: IndividualPhaseId,
+): IndividualPhaseId | null {
+  const currentIndex = INDIVIDUAL_PHASE_IDS.indexOf(currentPhaseId);
+
+  for (let offset = 1; offset < INDIVIDUAL_PHASE_IDS.length; offset += 1) {
+    const candidateIndex = (currentIndex + offset) % INDIVIDUAL_PHASE_IDS.length;
+    const candidatePhaseId = INDIVIDUAL_PHASE_IDS[candidateIndex];
+
+    if ((selections[candidatePhaseId] ?? []).length !== 3) {
+      return candidatePhaseId;
+    }
+  }
+
+  return null;
+}
+
 export function hasCompleteIndividualSelections(selections: SelectionsByPhase): boolean {
   return INDIVIDUAL_PHASE_IDS.every((phaseId) => (selections[phaseId] ?? []).length === 3)
     && new Set(orderedIndividualCardIds(selections)).size === 9;

@@ -143,7 +143,7 @@ function CategoryDistribution({ collective }: { collective: DashboardCollectiveM
 
 export function DashboardView({ data, from, to, origin, error }: DashboardViewProps) {
   const returnHref = origin === "result" ? "/individual/result" : "/";
-  const returnLabel = origin === "result" ? "Volver a resultados" : "Volver al inicio";
+  const returnLabel = origin === "result" ? "Volver a resultado individual" : "Volver al inicio";
   const hasStartedData = Boolean(data?.summary.startedParticipations);
 
   return (
@@ -151,7 +151,7 @@ export function DashboardView({ data, from, to, origin, error }: DashboardViewPr
       <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-sm font-black uppercase tracking-[0.18em] text-blue-700">Justicia 2030</p>
-          <h1 className="mt-2 text-3xl font-black tracking-tight text-blue-950 sm:text-4xl">Métricas de participación</h1>
+          <h1 className="mt-2 text-3xl font-black tracking-tight text-blue-950 sm:text-4xl">Resultados de participación</h1>
           <p className="mt-3 max-w-3xl leading-7 text-slate-600">Prioridades agregadas del flujo de participación individual.</p>
         </div>
         <Link href={returnHref} className="inline-flex min-h-11 shrink-0 items-center self-start rounded-lg border border-blue-700 bg-white px-5 font-bold text-blue-800 shadow-sm focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-blue-600 sm:self-auto">
@@ -161,7 +161,7 @@ export function DashboardView({ data, from, to, origin, error }: DashboardViewPr
 
       <section className="mt-9 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6" aria-labelledby="date-filter-title">
         <h2 id="date-filter-title" className="text-xl font-black text-blue-950">Periodo</h2>
-        <p className="mt-1 text-sm leading-6 text-slate-600">Las fechas incluyen días completos en horario Europe/Madrid y filtran por inicio de participación.</p>
+        <p className="mt-1 text-sm leading-6 text-slate-600">Por inicio de participación.</p>
         <form action="/dashboard" method="get" className="mt-5 flex flex-col gap-4 sm:flex-row sm:items-end">
           {origin ? <input type="hidden" name="origin" value={origin} /> : null}
           <label className="flex flex-1 flex-col gap-2 font-bold text-slate-800">
@@ -179,7 +179,7 @@ export function DashboardView({ data, from, to, origin, error }: DashboardViewPr
 
       {error ? (
         <section className="mt-8 rounded-2xl border border-red-200 bg-red-50 p-6" role="alert">
-          <h2 className="text-lg font-black text-red-950">No se pueden mostrar las métricas</h2>
+          <h2 className="text-lg font-black text-red-950">No se pueden mostrar los resultados de participación</h2>
           <p className="mt-2 leading-7 text-red-900">{error}</p>
         </section>
       ) : data ? (
