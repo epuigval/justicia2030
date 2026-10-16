@@ -13,6 +13,7 @@ function existingCollectiveAssets(collectiveId: string): WorkshopCollectiveAsset
 export const individualCollectivePresentations: Record<string, IndividualCollectivePresentation> = {
   "universidad-talento-joven": {
     description: "Estudiante, docente o investigador interesado en el ámbito de la Justicia y en cómo la innovación, el conocimiento y las nuevas tecnologías pueden contribuir a su evolución.",
+    assets: { illustrationSrc: "/collectives/universidad-talento-joven/illustration.png" },
   },
   "profesionales-juridicos": {
     description: "Profesional que representa o acompaña a ciudadanos y empresas y se relaciona de forma continua con órganos judiciales y tribunales.",
@@ -28,6 +29,7 @@ export const individualCollectivePresentations: Record<string, IndividualCollect
   },
   "tecnologia-transformacion-digital": {
     description: "Profesional responsable de diseñar, desarrollar, gobernar o evolucionar sistemas, datos y servicios digitales que soportan el funcionamiento y la transformación de la Justicia.",
+    assets: { illustrationSrc: "/collectives/tecnologia-transformacion-digital/illustration.png" },
   },
 };
 

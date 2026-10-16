@@ -29,6 +29,7 @@ const catalog: IndividualCatalog = {
   collectives: [
     { id: "universidad-talento-joven", name: "Universidad y talento joven" },
     { id: "profesionales-juridicos", name: "Profesionales jurídicos" },
+    { id: "tecnologia-transformacion-digital", name: "Tecnología y Transformación Digital" },
   ],
   subprofiles: [
     { id: "universidad-talento-joven--estudiante", collectiveId: "universidad-talento-joven", name: "Estudiante" },
@@ -100,6 +101,7 @@ describe("inicio Individual", () => {
 
     await user.selectOptions(screen.getByLabelText("Colectivo"), "universidad-talento-joven");
     expect(screen.getByText("Estudiante, docente o investigador interesado en el ámbito de la Justicia y en cómo la innovación, el conocimiento y las nuevas tecnologías pueden contribuir a su evolución.")).toBeInTheDocument();
+    expect(document.querySelector('img[src*="universidad-talento-joven"]')).toHaveClass("object-contain");
     const subprofile = screen.getByLabelText("Perfil (opcional)");
     expect(within(subprofile).getByRole("option", { name: "Estudiante" })).toBeInTheDocument();
     expect(within(subprofile).queryByRole("option", { name: "Abogacía" })).not.toBeInTheDocument();
@@ -131,6 +133,16 @@ describe("inicio Individual", () => {
     expect(JSON.parse(fetchMock.mock.calls[0][1].body).subprofileId).toBe("profesionales-juridicos--abogacia");
   });
 
+  it("muestra la ilustración de Tecnología y Transformación Digital", async () => {
+    const user = userEvent.setup();
+    render(<IndividualProvider><IndividualStart catalog={catalog} /></IndividualProvider>);
+
+    await user.selectOptions(await screen.findByLabelText("Colectivo"), "tecnologia-transformacion-digital");
+
+    expect(screen.getByText("Profesional responsable de diseñar, desarrollar, gobernar o evolucionar sistemas, datos y servicios digitales que soportan el funcionamiento y la transformación de la Justicia.")).toBeInTheDocument();
+    expect(document.querySelector('img[src*="tecnologia-transformacion-digital"]')).toHaveClass("object-contain");
+  });
+
   it("recupera estado Individual desde almacenamiento al volver a montar", async () => {
     localStorage.setItem(INDIVIDUAL_STORAGE_KEY, JSON.stringify(persistedState({
       selectionsByPhase: { ...persistedState().selectionsByPhase, "justicia-actual": ["justicia-actual-tarjeta-1"] },
@@ -151,12 +163,16 @@ describe("entrada y cabecera Individual", () => {
   it("mantiene enlazado el logo del flujo Actual", () => {
     const { container } = render(<AppShell><span>Actual</span></AppShell>);
     expect(container.querySelector('header a[href="/"]')).toBeInTheDocument();
+    expect(screen.getByAltText("DATAfórum Justicia")).toHaveAttribute("src", expect.stringContaining("dataforum-justicia.png"));
+    expect(screen.getByAltText("NTT DATA")).toBeInTheDocument();
   });
 
   it("muestra el logo Individual sin navegación", () => {
     const { container } = render(<IndividualLayout><span>Individual</span></IndividualLayout>);
     expect(container.querySelector('header a')).not.toBeInTheDocument();
     expect(screen.getByText("JUSTICIA")).toBeInTheDocument();
+    expect(screen.getByAltText("DATAfórum Justicia")).toBeInTheDocument();
+    expect(screen.getByAltText("NTT DATA")).toBeInTheDocument();
   });
 
   it("muestra el nuevo copy, selector, placeholder y las tres modalidades", async () => {

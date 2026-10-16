@@ -20,7 +20,7 @@ export function CollectiveInfoPanel({ name, description, prioritizationCriteria 
           <ul className="mt-2.5 space-y-2 text-sm leading-5 text-[#0a0a0a]">{prioritizationCriteria.map((criterion) => <li key={criterion} className="flex gap-2"><span className="text-[#114dcd]" aria-hidden="true">•</span><span>{criterion}</span></li>)}</ul>
         </> : null}
       </div>
-      {assets?.illustrationSrc ? <div className="mt-6 h-[205px] w-[308px] overflow-hidden lg:absolute lg:bottom-6 lg:right-6 lg:mt-0"><Image src={assets.illustrationSrc} alt="" width={308} height={205} className="block h-[205px] w-[308px] object-contain" /></div> : null}
+      {assets?.illustrationSrc ? <div className="relative mx-auto mt-6 aspect-[308/205] w-full max-w-[308px] overflow-hidden lg:absolute lg:bottom-6 lg:right-6 lg:mx-0 lg:mt-0"><Image src={assets.illustrationSrc} alt="" fill sizes="(min-width: 1024px) 308px, min(308px, 100vw)" className="object-contain" /></div> : null}
     </aside>
   );
 }

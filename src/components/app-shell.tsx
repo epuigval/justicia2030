@@ -4,8 +4,8 @@ import type { ReactNode } from "react";
 
 export function AppShell({ children, brandHref = "/" }: { children: ReactNode; brandHref?: string | null }) {
   const brand = <>
-    <span className="relative h-8 w-16 shrink-0 overflow-hidden sm:w-[72px]">
-      <Image src="/generalitat-valenciana-logo.jpg" alt="Generalitat Valenciana" width={647} height={395} className="absolute left-[-15px] top-[-16px] h-auto w-[104px] max-w-none" priority />
+    <span className="flex h-9 w-[92px] shrink-0 items-center justify-center rounded-md bg-[#072056] px-1.5 sm:h-10 sm:w-[120px] sm:px-2">
+      <Image src="/dataforum-justicia.png" alt="DATAfórum Justicia" width={151} height={59} className="h-full w-full object-contain" priority />
     </span>
     <span className="text-xl font-black leading-8 text-[#0b1d3a] sm:text-2xl">JUSTICIA<span className="text-[#114dcd]">2030</span></span>
   </>;
@@ -16,7 +16,7 @@ export function AppShell({ children, brandHref = "/" }: { children: ReactNode; b
       <header className="border-b border-[#d6d6d6] bg-white">
         <div className="mx-auto flex h-16 max-w-7xl items-center px-4 sm:px-6 lg:px-8">
           {brandHref ? <Link href={brandHref} className={brandClassName}>{brand}</Link> : <div className={brandClassName}>{brand}</div>}
-          <img src="/nttdata-logo.svg" alt="NTT DATA" className="ml-auto hidden h-6 w-auto min-[360px]:block sm:h-8" />
+          <img src="/nttdata-logo.svg" alt="NTT DATA" className="ml-auto hidden h-5 w-auto min-[360px]:block sm:h-8" />
         </div>
       </header>
       <div className="flex-1">{children}</div>
