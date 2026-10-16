@@ -57,7 +57,7 @@ export function DashboardPriorityItem({
             />
           </div>
           <p className="mt-1.5 text-xs text-slate-500">
-            {numberFormatter.format(priority.selectionCount)} {priority.selectionCount === 1 ? "selección" : "selecciones"}
+            Votada {numberFormatter.format(priority.selectionCount)} {priority.selectionCount === 1 ? "vez" : "veces"}
           </p>
         </div>
       </div>

@@ -22,6 +22,13 @@ export function DashboardCollectivePriorities({
 
   if (!selectedPhase) return null;
 
+  const visibleCollectives = collectives.flatMap((collective) => {
+    const phase = collective.phasePriorities.find((item) => item.phaseId === selectedPhase.phaseId);
+    return phase && phase.completedParticipants > 0 && phase.priorities.length > 0
+      ? [{ collective, phase }]
+      : [];
+  });
+
   return (
     <div className="mt-6">
       <div className="inline-flex max-w-full flex-wrap gap-1 rounded-xl bg-slate-100 p-1" role="group" aria-label="Seleccionar fase para comparar colectivos">
@@ -38,7 +45,9 @@ export function DashboardCollectivePriorities({
         ))}
       </div>
 
-      <div className="mt-5 max-w-full overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
+      {visibleCollectives.length === 0 ? (
+        <p className="mt-5 rounded-2xl border border-slate-200 bg-white p-6 text-sm font-bold text-slate-500 shadow-sm">No hay prioridades por colectivo para esta fase.</p>
+      ) : <div className="mt-5 max-w-full overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
         <table className="w-full min-w-[980px] table-fixed border-collapse text-left">
           <caption className="sr-only">Prioridades de {selectedPhase.phaseName} por colectivo</caption>
           <colgroup>
@@ -54,23 +63,16 @@ export function DashboardCollectivePriorities({
             </tr>
           </thead>
           <tbody>
-            {collectives.map((collective) => {
-              const phase = collective.phasePriorities.find((item) => item.phaseId === selectedPhase.phaseId);
-
-              return (
+            {visibleCollectives.map(({ collective, phase }) => (
                 <tr key={collective.collectiveId} className="border-t border-slate-200 align-top first:border-t-0">
                   <th scope="row" className="bg-slate-50 px-5 py-4">
                     <span className="block text-sm font-black leading-5 text-blue-950">{collective.collectiveName}</span>
-                    {collective.completedParticipations > 0 ? (
-                      <span className="mt-1.5 block text-xs font-normal text-slate-500">
-                        {numberFormatter.format(collective.completedParticipations)} {collective.completedParticipations === 1 ? "completada" : "completadas"}
-                      </span>
-                    ) : null}
+                    <span className="mt-1.5 block text-xs font-normal text-slate-500">
+                      {numberFormatter.format(collective.completedParticipations)} {collective.completedParticipations === 1 ? "participación" : "participaciones"}
+                    </span>
                   </th>
-                  {collective.completedParticipations === 0 ? (
-                    <td colSpan={3} className="border-l border-slate-200 px-5 py-6 text-sm font-bold text-slate-500">Sin datos</td>
-                  ) : [1, 2, 3].map((rank) => {
-                    const priorities = phase?.priorities.filter((priority) => priority.rank === rank) ?? [];
+                  {[1, 2, 3].map((rank) => {
+                    const priorities = phase.priorities.filter((priority) => priority.rank === rank);
                     return (
                       <td key={rank} className="border-l border-slate-200 px-4 py-2">
                         {priorities.length > 0 ? (
@@ -79,16 +81,15 @@ export function DashboardCollectivePriorities({
                               <DashboardPriorityItem key={priority.cardId} priority={priority} accent={selectedPhase.accent} showRank={false} compact />
                             ))}
                           </div>
-                        ) : <span className="block py-4 text-sm text-slate-400">Sin datos</span>}
+                        ) : <span className="block py-4 text-sm text-slate-400" aria-label={`Sin posición ${rank}`}>—</span>}
                       </td>
                     );
                   })}
                 </tr>
-              );
-            })}
+              ))}
           </tbody>
         </table>
-      </div>
+      </div>}
     </div>
   );
 }
