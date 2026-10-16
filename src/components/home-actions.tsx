@@ -55,7 +55,7 @@ export function HomeActions() {
     <div className="mt-8 space-y-4">
       {notice ? <p className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-amber-950" role="status">{notice}</p> : null}
       <div className="max-w-xl rounded-2xl border border-blue-100 bg-white/90 p-5 shadow-sm">
-        <label htmlFor="participation-mode" className="block font-black text-blue-950">Elige cómo quieres participar</label>
+        <label htmlFor="participation-mode" className="block font-bold text-blue-950">Elige cómo quieres participar</label>
         <div className="relative mt-3">
           <select
             id="participation-mode"
@@ -74,7 +74,7 @@ export function HomeActions() {
           type="button"
           disabled={!mode}
           onClick={() => action.href && router.push(action.href)}
-          className="mt-4 min-h-12 w-full rounded-xl bg-blue-700 px-6 font-black text-white shadow-sm focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-blue-600 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-600"
+          className="mt-4 min-h-12 w-full rounded-xl bg-blue-700 px-6 font-bold text-white shadow-sm focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-blue-600 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-600"
         >
           {action.label}
         </button>

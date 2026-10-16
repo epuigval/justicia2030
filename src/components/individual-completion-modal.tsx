@@ -54,7 +54,7 @@ export function IndividualCompletionModal({
             type="button"
             disabled={pending}
             onClick={onEdit}
-            className="min-h-11 cursor-pointer rounded-lg border border-[#114dcd] bg-white px-7 text-sm font-bold text-[#114dcd] focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[#114dcd] disabled:cursor-wait disabled:border-[#7898dc] disabled:text-[#7898dc]"
+            className="min-h-11 cursor-pointer rounded-lg border border-[#114dcd] bg-white px-7 text-sm font-semibold text-[#114dcd] focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[#114dcd] disabled:cursor-wait disabled:border-[#7898dc] disabled:text-[#7898dc]"
           >
             Editar tarjetas
           </button>
@@ -63,7 +63,7 @@ export function IndividualCompletionModal({
             disabled={pending}
             aria-busy={pending}
             onClick={onComplete}
-            className="min-h-11 cursor-pointer rounded-lg bg-[#114dcd] px-7 text-sm font-bold text-white focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[#114dcd] disabled:cursor-wait disabled:bg-[#7898dc]"
+            className="min-h-11 cursor-pointer rounded-lg bg-[#114dcd] px-7 text-sm font-semibold text-white focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[#114dcd] disabled:cursor-wait disabled:bg-[#7898dc]"
           >
             Guardar y finalizar
           </button>

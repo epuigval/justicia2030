@@ -58,7 +58,7 @@ function PeriodFilter({ from, to, origin }: { from: string; to: string; origin: 
             Hasta
             <input type="date" name="to" defaultValue={to} className="min-h-11 rounded-xl border border-slate-300 bg-white px-3 font-normal text-slate-950 focus:border-blue-600 focus:outline-none focus:ring-3 focus:ring-blue-200" />
           </label>
-          <button type="submit" className="min-h-11 rounded-xl bg-blue-700 px-5 font-black text-white shadow-sm focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-blue-600">Aplicar filtro</button>
+          <button type="submit" className="min-h-11 rounded-xl bg-blue-700 px-5 font-bold text-white shadow-sm focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-blue-600">Aplicar filtro</button>
           <Link href={`/dashboard${originQuery(origin)}`} className="inline-flex min-h-11 items-center justify-center rounded-xl border border-slate-300 bg-white px-5 font-bold text-slate-700 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-blue-600">Limpiar filtro</Link>
         </form>
       </div>
@@ -91,8 +91,8 @@ function PhasePrioritiesGrid({ phases }: { phases: DashboardPhasePrioritiesDto[]
     <div className="mt-6 grid gap-5 lg:grid-cols-3">
       {phases.map((phase) => (
         <article key={phase.phaseId} aria-labelledby={`global-priorities-${phase.phaseId}`} className={`rounded-2xl border border-slate-200 border-t-4 bg-white p-5 shadow-sm ${accentClasses[phase.accent]}`}>
-          <p className="text-xs font-black uppercase tracking-[0.15em] text-slate-500">Fase {phase.phaseOrder}</p>
-          <h3 id={`global-priorities-${phase.phaseId}`} className="mt-2 text-xl font-black text-blue-950">{phase.phaseName}</h3>
+          <p className="text-xs font-bold uppercase tracking-[0.15em] text-slate-500">Fase {phase.phaseOrder}</p>
+          <h3 id={`global-priorities-${phase.phaseId}`} className="mt-2 text-xl font-bold text-blue-950">{phase.phaseName}</h3>
           <PriorityList phase={phase} />
         </article>
       ))}
@@ -103,7 +103,7 @@ function PhasePrioritiesGrid({ phases }: { phases: DashboardPhasePrioritiesDto[]
 function CategoryDistribution({ collective }: { collective: DashboardCollectiveMetricsDto }) {
   return (
     <article className="flex h-full flex-col rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-      <h3 className="min-h-14 text-lg font-black leading-7 text-blue-950">{collective.collectiveName}</h3>
+      <h3 className="min-h-14 text-lg font-bold leading-7 text-blue-950">{collective.collectiveName}</h3>
       <div className="mt-4 flex-1 space-y-4">
         {collective.categoryDistribution.map((category) => (
           <div key={category.categoryId}>
@@ -135,8 +135,8 @@ export function DashboardView({ data, from, to, origin, error }: DashboardViewPr
     <main className="mx-auto w-full max-w-7xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
       <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-sm font-black uppercase tracking-[0.18em] text-blue-700">Justicia 2030</p>
-          <h1 className="mt-2 text-3xl font-black tracking-tight text-blue-950 sm:text-4xl">Resultados de participación</h1>
+          <p className="text-sm font-bold uppercase tracking-[0.18em] text-blue-700">Justicia 2030</p>
+          <h1 className="mt-2 text-3xl font-extrabold tracking-tight text-blue-950 sm:text-4xl">Resultados de participación</h1>
           <p className="mt-3 max-w-3xl leading-7 text-slate-600">Prioridades agregadas del flujo de participación individual.</p>
         </div>
         <Link href={returnHref} className="inline-flex min-h-11 shrink-0 items-center self-start rounded-lg border border-blue-700 bg-white px-5 font-bold text-blue-800 shadow-sm focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-blue-600 sm:self-auto">
@@ -145,7 +145,7 @@ export function DashboardView({ data, from, to, origin, error }: DashboardViewPr
       </div>
 
       <section className="mt-10" aria-labelledby="summary-title">
-        <h2 id="summary-title" className="text-2xl font-black text-blue-950">Resumen general</h2>
+        <h2 id="summary-title" className="text-2xl font-extrabold text-blue-950">Resumen general</h2>
         <PeriodFilter from={from} to={to} origin={origin} />
         {data ? (
           <div className="mt-5 grid gap-5 sm:grid-cols-2">
@@ -163,14 +163,14 @@ export function DashboardView({ data, from, to, origin, error }: DashboardViewPr
 
       {error ? (
         <section className="mt-8 rounded-2xl border border-red-200 bg-red-50 p-6" role="alert">
-          <h2 className="text-lg font-black text-red-950">No se pueden mostrar los resultados de participación</h2>
+          <h2 className="text-lg font-extrabold text-red-950">No se pueden mostrar los resultados de participación</h2>
           <p className="mt-2 leading-7 text-red-900">{error}</p>
         </section>
       ) : data ? (
         <>
           {!hasStartedData ? (
             <section className="mt-8 rounded-2xl border border-slate-200 bg-white p-7 text-center shadow-sm">
-              <h2 className="text-xl font-black text-blue-950">Sin datos en este periodo</h2>
+              <h2 className="text-xl font-extrabold text-blue-950">Sin datos en este periodo</h2>
               <p className="mt-2 text-slate-600">No hay participaciones iniciadas para el filtro seleccionado.</p>
             </section>
           ) : (
@@ -182,19 +182,19 @@ export function DashboardView({ data, from, to, origin, error }: DashboardViewPr
               ) : null}
 
               <section className="mt-12" aria-labelledby="global-priorities-title">
-                <h2 id="global-priorities-title" className="text-2xl font-black text-blue-950">Prioridades globales</h2>
+                <h2 id="global-priorities-title" className="text-2xl font-extrabold text-blue-950">Prioridades globales</h2>
                 <p className="mt-2 leading-7 text-slate-600">Estas son las temáticas más votadas por cada fase.</p>
                 <PhasePrioritiesGrid phases={data.globalPhasePriorities} />
               </section>
 
               <section className="mt-12" aria-labelledby="collective-priorities-title">
-                <h2 id="collective-priorities-title" className="text-2xl font-black text-blue-950">Prioridades por colectivo</h2>
+                <h2 id="collective-priorities-title" className="text-2xl font-extrabold text-blue-950">Prioridades por colectivo</h2>
                 <p className="mt-2 leading-7 text-slate-600">Estas son las temáticas más votadas por cada colectivo en cada una de las tres fases.</p>
                 <DashboardCollectivePriorities collectives={data.collectiveMetrics} phases={data.globalPhasePriorities} />
               </section>
 
               <section className="mt-12" aria-labelledby="category-distribution-title">
-                <h2 id="category-distribution-title" className="text-2xl font-black text-blue-950">Distribución por categoría</h2>
+                <h2 id="category-distribution-title" className="text-2xl font-extrabold text-blue-950">Distribución por categoría</h2>
                 <p className="mt-2 leading-7 text-slate-600">Estas son las categorías ordenadas por importancia en función de las temáticas votadas.</p>
                 {data.collectiveMetrics.some((collective) => collective.totalSelections > 0) ? (
                   <div className="mt-6 grid gap-5 md:grid-cols-2 xl:grid-cols-3">

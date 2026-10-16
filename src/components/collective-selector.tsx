@@ -15,10 +15,10 @@ export function CollectiveSelector() {
     <main className="mx-auto w-full max-w-[var(--container-7xl)] px-3 py-8 sm:px-6">
       <section className="rounded-xl border border-slate-300 bg-white p-8 shadow-sm sm:p-10">
         <div>
-          <p className="text-sm font-black uppercase tracking-[0.16em] text-blue-700">Inicio de la partida</p>
-          <h1 className="mt-2 text-3xl font-black text-blue-950 sm:text-4xl">Seleccionad vuestro colectivo</h1>
+          <p className="text-sm font-bold uppercase tracking-[0.16em] text-blue-700">Inicio de la partida</p>
+          <h1 className="mt-2 text-3xl font-extrabold text-blue-950 sm:text-4xl">Seleccionad vuestro colectivo</h1>
           <p className="mt-3 max-w-3xl leading-7 text-slate-700">Seleccionad el colectivo al que representáis para debatir las propuestas desde su visión.</p>
-          <label htmlFor="collective" className="mt-7 block text-sm font-black text-slate-950">Seleccionad un colectivo</label>
+          <label htmlFor="collective" className="mt-7 block text-sm font-bold text-slate-950">Seleccionad un colectivo</label>
           <select id="collective" value={selectedId} onChange={(event) => setSelectedId(event.target.value)} className="mt-2 min-h-11 w-full max-w-xl rounded-md border border-slate-400 bg-white px-3 text-sm text-slate-900 focus-visible:outline-3 focus-visible:outline-blue-600">
             <option value="" disabled>Escoged una opción</option>
             {workshopConfig.collectives.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}

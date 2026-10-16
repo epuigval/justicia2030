@@ -58,15 +58,15 @@ export function DashboardCollectivePriorities({
           </colgroup>
           <thead className="bg-blue-950 text-white">
             <tr>
-              <th scope="col" className="px-5 py-4 text-sm font-black">Colectivo</th>
-              {[1, 2, 3].map((rank) => <th key={rank} scope="col" className="border-l border-white/15 px-4 py-4 text-sm font-black">#{rank}</th>)}
+              <th scope="col" className="px-5 py-4 text-sm font-bold">Colectivo</th>
+              {[1, 2, 3].map((rank) => <th key={rank} scope="col" className="border-l border-white/15 px-4 py-4 text-sm font-bold">#{rank}</th>)}
             </tr>
           </thead>
           <tbody>
             {visibleCollectives.map(({ collective, phase }) => (
                 <tr key={collective.collectiveId} className="border-t border-slate-200 align-top first:border-t-0">
                   <th scope="row" className="bg-slate-50 px-5 py-4">
-                    <span className="block text-sm font-black leading-5 text-blue-950">{collective.collectiveName}</span>
+                    <span className="block text-sm font-bold leading-5 text-blue-950">{collective.collectiveName}</span>
                     <span className="mt-1.5 block text-xs font-normal text-slate-500">
                       {numberFormatter.format(collective.completedParticipations)} {collective.completedParticipations === 1 ? "participación" : "participaciones"}
                     </span>

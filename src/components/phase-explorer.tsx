@@ -58,7 +58,7 @@ export function PhaseExplorer({ phaseId, detailHref, onOpenDetail, onPreviousPha
         <div>
           {cards.length === 0 ? (
             <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center">
-              <h2 className="text-xl font-black">No hay tarjetas para este filtro</h2>
+              <h2 className="text-xl font-extrabold">No hay tarjetas para este filtro</h2>
               <p className="mt-2 text-slate-600">Prueba con «Todas» u otra categoría.</p>
             </div>
           ) : (
