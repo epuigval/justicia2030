@@ -8,7 +8,7 @@ export const runtime = "nodejs";
 const MAX_BODY_BYTES = 4_096;
 const INVALID_REQUEST = { error: "Solicitud no válida." };
 const TOO_LARGE = { error: "Solicitud demasiado grande." };
-const CATALOG_NOT_FOUND = { error: "Colectivo o subperfil no disponible." };
+const CATALOG_NOT_FOUND = { error: "Colectivo o perfil no disponible." };
 const CONFLICT = { error: "El identificador ya pertenece a otra participación." };
 const SERVER_ERROR = { error: "No se pudo iniciar la participación." };
 

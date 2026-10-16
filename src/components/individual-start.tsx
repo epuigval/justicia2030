@@ -73,7 +73,7 @@ export function IndividualStart({ catalog, catalogUnavailable = false }: { catal
       <section className="rounded-[20px] border border-[#d2d2d2] bg-white p-8 sm:p-10 lg:p-12">
         <p className="text-sm font-bold uppercase tracking-[0.6px] text-[#114dcd]">Participación individual</p>
         <h1 className="mt-3 text-3xl font-extrabold leading-9 text-[#0a0a0a] sm:text-[36px]">Construye tu visión de Justicia 2030</h1>
-        <p className="mt-3 max-w-3xl text-sm leading-6 text-[#565656]">Selecciona tu colectivo y, si corresponde, un subperfil. La participación se creará cuando pulses comenzar.</p>
+        <p className="mt-3 max-w-3xl text-sm leading-6 text-[#565656]">Selecciona tu colectivo y, si corresponde, tu perfil.</p>
 
         {storageNotice ? <p className="mt-6 rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950" role="status">{storageNotice}</p> : null}
         {catalogUnavailable ? <p className="mt-6 rounded-xl border border-red-300 bg-red-50 p-4 text-sm text-red-950" role="alert">El catálogo no está disponible ahora mismo. Inténtalo de nuevo más tarde.</p> : null}
@@ -98,9 +98,9 @@ export function IndividualStart({ catalog, catalogUnavailable = false }: { catal
           </label>
 
           <label className="text-sm font-bold text-[#0a0a0a]">
-            Subperfil <span className="font-normal text-[#565656]">(opcional)</span>
+            Perfil <span className="font-normal text-[#565656]">(opcional)</span>
             <select
-              aria-label="Subperfil (opcional)"
+              aria-label="Perfil (opcional)"
               value={subprofileId}
               disabled={!collectiveId || catalogUnavailable || pending}
               onChange={(event) => {
@@ -109,7 +109,7 @@ export function IndividualStart({ catalog, catalogUnavailable = false }: { catal
               }}
               className="mt-2 min-h-11 w-full rounded-lg border border-[#909090] bg-white px-3 font-normal text-[#0a0a0a] focus-visible:outline-3 focus-visible:outline-[#114dcd] disabled:bg-slate-100"
             >
-              <option value="">Sin subperfil</option>
+              <option value="">Sin perfil</option>
               {subprofiles.map((subprofile) => <option key={subprofile.id} value={subprofile.id}>{subprofile.name}</option>)}
             </select>
           </label>
@@ -125,7 +125,7 @@ export function IndividualStart({ catalog, catalogUnavailable = false }: { catal
           onClick={beginParticipation}
           className="mt-7 min-h-11 rounded-lg bg-[#114dcd] px-6 text-sm font-bold text-white focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[#114dcd] disabled:cursor-not-allowed disabled:bg-[#d2d2d2] disabled:text-[#565656]"
         >
-          {pending ? "Iniciando…" : "Comenzar participación"}
+          {pending ? "Iniciando…" : "Continuar"}
         </button>
       </section>
     </main>

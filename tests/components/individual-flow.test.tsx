@@ -85,19 +85,19 @@ afterEach(() => {
 });
 
 describe("inicio Individual", () => {
-  it("exige colectivo, filtra subperfiles y permite iniciar sin subperfil", async () => {
+  it("exige colectivo, filtra perfiles y permite iniciar sin perfil", async () => {
     const fetchMock = vi.fn().mockResolvedValue({ ok: true });
     vi.stubGlobal("fetch", fetchMock);
     const user = userEvent.setup();
     render(<IndividualProvider><IndividualStart catalog={catalog} /></IndividualProvider>);
 
-    const begin = await screen.findByRole("button", { name: "Comenzar participación" });
+    const begin = await screen.findByRole("button", { name: "Continuar" });
     expect(begin).toBeDisabled();
     expect(fetchMock).not.toHaveBeenCalled();
 
     await user.selectOptions(screen.getByLabelText("Colectivo"), "universidad-talento-joven");
     expect(screen.getByText("Estudiante, docente o investigador interesado en el ámbito de la Justicia y en cómo la innovación, el conocimiento y las nuevas tecnologías pueden contribuir a su evolución.")).toBeInTheDocument();
-    const subprofile = screen.getByLabelText("Subperfil (opcional)");
+    const subprofile = screen.getByLabelText("Perfil (opcional)");
     expect(within(subprofile).getByRole("option", { name: "Estudiante" })).toBeInTheDocument();
     expect(within(subprofile).queryByRole("option", { name: "Abogacía" })).not.toBeInTheDocument();
     await user.click(begin);
@@ -114,7 +114,7 @@ describe("inicio Individual", () => {
     expect(fetchMock.mock.calls.some(([url]) => url === "/api/send-phase-result")).toBe(false);
   });
 
-  it("envía sólo un subperfil perteneciente al colectivo seleccionado", async () => {
+  it("envía sólo un perfil perteneciente al colectivo seleccionado", async () => {
     const fetchMock = vi.fn().mockResolvedValue({ ok: true });
     vi.stubGlobal("fetch", fetchMock);
     const user = userEvent.setup();
@@ -122,8 +122,8 @@ describe("inicio Individual", () => {
 
     await user.selectOptions(await screen.findByLabelText("Colectivo"), "profesionales-juridicos");
     expect(document.querySelector('img[src*="operadores-juridicos"]')).toBeInTheDocument();
-    await user.selectOptions(screen.getByLabelText("Subperfil (opcional)"), "profesionales-juridicos--abogacia");
-    await user.click(screen.getByRole("button", { name: "Comenzar participación" }));
+    await user.selectOptions(screen.getByLabelText("Perfil (opcional)"), "profesionales-juridicos--abogacia");
+    await user.click(screen.getByRole("button", { name: "Continuar" }));
 
     expect(JSON.parse(fetchMock.mock.calls[0][1].body).subprofileId).toBe("profesionales-juridicos--abogacia");
   });

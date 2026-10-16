@@ -39,7 +39,7 @@ describe("persistencia Individual", () => {
     expect(adapter.read()).toEqual({ ok: true, value: session() });
   });
 
-  it("serializa sólo el contrato persistido y admite subperfil opcional", () => {
+  it("serializa sólo el contrato persistido y admite perfil opcional", () => {
     localStorage.clear();
     const adapter = createIndividualStorageAdapter(localStorage);
     adapter.write({ ...session({ subprofileId: "universidad-talento-joven--estudiante" }), hydrated: true, storageNotice: "no persistir" } as never);
