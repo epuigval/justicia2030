@@ -7,6 +7,7 @@ import { storageKeys, workshopConfig } from "@/config/workshop";
 import { individualResumeHref } from "@/domain/individual-flow";
 import { createIndividualStorageAdapter } from "@/persistence/individual-storage";
 import { createStorageAdapter } from "@/persistence/storage";
+import { SelectChevron } from "./select-chevron";
 
 type ParticipationMode = "team" | "individual" | "facilitator";
 
@@ -55,17 +56,20 @@ export function HomeActions() {
       {notice ? <p className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-amber-950" role="status">{notice}</p> : null}
       <div className="max-w-xl rounded-2xl border border-blue-100 bg-white/90 p-5 shadow-sm">
         <label htmlFor="participation-mode" className="block font-black text-blue-950">Elige cómo quieres participar</label>
-        <select
-          id="participation-mode"
-          value={mode}
-          onChange={(event) => setMode(event.target.value as ParticipationMode | "")}
-          className="mt-3 min-h-12 w-full rounded-xl border border-slate-300 bg-white px-4 text-slate-950 focus:border-blue-600 focus:outline-none focus:ring-3 focus:ring-blue-200"
-        >
-          <option value="">Seleccionar una opción</option>
-          <option value="team">Equipo</option>
-          <option value="individual">Participante individual</option>
-          <option value="facilitator">Dinamizador</option>
-        </select>
+        <div className="relative mt-3">
+          <select
+            id="participation-mode"
+            value={mode}
+            onChange={(event) => setMode(event.target.value as ParticipationMode | "")}
+            className="peer min-h-12 w-full appearance-none rounded-xl border border-slate-300 bg-white py-2 pl-4 pr-12 text-slate-950 focus:border-blue-600 focus:outline-none focus:ring-3 focus:ring-blue-200"
+          >
+            <option value="">Seleccionar una opción</option>
+            <option value="team">Equipo</option>
+            <option value="individual">Participante individual</option>
+            <option value="facilitator">Dinamizador</option>
+          </select>
+          <SelectChevron />
+        </div>
         <button
           type="button"
           disabled={!mode}

@@ -8,6 +8,7 @@ import { individualResumeHref, type IndividualCatalog } from "@/domain/individua
 import { useIndividualParticipation } from "@/context/individual-context";
 import { LoadingState } from "./loading-state";
 import { CollectiveInfoPanel } from "./collective-info-panel";
+import { SelectChevron } from "./select-chevron";
 
 export function IndividualStart({ catalog, catalogUnavailable = false }: { catalog: IndividualCatalog; catalogUnavailable?: boolean }) {
   const router = useRouter();
@@ -81,37 +82,43 @@ export function IndividualStart({ catalog, catalogUnavailable = false }: { catal
         <div className="mt-8 grid max-w-3xl gap-6 sm:grid-cols-2">
           <label className="text-sm font-bold text-[#0a0a0a]">
             Colectivo <span className="text-red-700">*</span>
-            <select
-              aria-label="Colectivo"
-              value={collectiveId}
-              disabled={catalogUnavailable || pending}
-              onChange={(event) => {
-                setCollectiveId(event.target.value);
-                setSubprofileId("");
-                setError("");
-              }}
-              className="mt-2 min-h-11 w-full rounded-lg border border-[#909090] bg-white px-3 font-normal text-[#0a0a0a] focus-visible:outline-3 focus-visible:outline-[#114dcd] disabled:bg-slate-100"
-            >
-              <option value="">Selecciona un colectivo</option>
-              {catalog.collectives.map((collective) => <option key={collective.id} value={collective.id}>{collective.name}</option>)}
-            </select>
+            <span className="relative mt-2 block">
+              <select
+                aria-label="Colectivo"
+                value={collectiveId}
+                disabled={catalogUnavailable || pending}
+                onChange={(event) => {
+                  setCollectiveId(event.target.value);
+                  setSubprofileId("");
+                  setError("");
+                }}
+                className="peer min-h-11 w-full appearance-none rounded-lg border border-[#909090] bg-white py-2 pl-3 pr-11 font-normal text-[#0a0a0a] focus-visible:outline-3 focus-visible:outline-[#114dcd] disabled:bg-slate-100"
+              >
+                <option value="">Selecciona un colectivo</option>
+                {catalog.collectives.map((collective) => <option key={collective.id} value={collective.id}>{collective.name}</option>)}
+              </select>
+              <SelectChevron />
+            </span>
           </label>
 
           <label className="text-sm font-bold text-[#0a0a0a]">
             Perfil <span className="font-normal text-[#565656]">(opcional)</span>
-            <select
-              aria-label="Perfil (opcional)"
-              value={subprofileId}
-              disabled={!collectiveId || catalogUnavailable || pending}
-              onChange={(event) => {
-                setSubprofileId(event.target.value);
-                setError("");
-              }}
-              className="mt-2 min-h-11 w-full rounded-lg border border-[#909090] bg-white px-3 font-normal text-[#0a0a0a] focus-visible:outline-3 focus-visible:outline-[#114dcd] disabled:bg-slate-100"
-            >
-              <option value="">Sin perfil</option>
-              {subprofiles.map((subprofile) => <option key={subprofile.id} value={subprofile.id}>{subprofile.name}</option>)}
-            </select>
+            <span className="relative mt-2 block">
+              <select
+                aria-label="Perfil (opcional)"
+                value={subprofileId}
+                disabled={!collectiveId || catalogUnavailable || pending}
+                onChange={(event) => {
+                  setSubprofileId(event.target.value);
+                  setError("");
+                }}
+                className="peer min-h-11 w-full appearance-none rounded-lg border border-[#909090] bg-white py-2 pl-3 pr-11 font-normal text-[#0a0a0a] focus-visible:outline-3 focus-visible:outline-[#114dcd] disabled:bg-slate-100"
+              >
+                <option value="">Sin perfil</option>
+                {subprofiles.map((subprofile) => <option key={subprofile.id} value={subprofile.id}>{subprofile.name}</option>)}
+              </select>
+              <SelectChevron />
+            </span>
           </label>
         </div>
 

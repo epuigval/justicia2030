@@ -94,6 +94,8 @@ describe("inicio Individual", () => {
     const begin = await screen.findByRole("button", { name: "Continuar" });
     expect(begin).toBeDisabled();
     expect(fetchMock).not.toHaveBeenCalled();
+    expect(screen.getByLabelText("Colectivo")).toHaveClass("appearance-none", "pr-11");
+    expect(screen.getByLabelText("Perfil (opcional)")).toHaveClass("appearance-none", "pr-11");
 
     await user.selectOptions(screen.getByLabelText("Colectivo"), "universidad-talento-joven");
     expect(screen.getByText("Estudiante, docente o investigador interesado en el ámbito de la Justicia y en cómo la innovación, el conocimiento y las nuevas tecnologías pueden contribuir a su evolución.")).toBeInTheDocument();
@@ -166,6 +168,7 @@ describe("entrada y cabecera Individual", () => {
     expect(within(select).getByRole("option", { name: "Equipo" })).toBeInTheDocument();
     expect(within(select).getByRole("option", { name: "Participante individual" })).toBeInTheDocument();
     expect(within(select).getByRole("option", { name: "Dinamizador" })).toBeInTheDocument();
+    expect(select).toHaveClass("appearance-none", "pr-12");
     expect(screen.getByRole("button", { name: "Iniciar partida" })).toBeDisabled();
     expect(screen.getByRole("link", { name: "Ver resultados generales" })).toHaveAttribute("href", "/dashboard?origin=home");
   });
