@@ -2,16 +2,18 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { CardDetailModal } from "@/components/card-detail-modal";
 import { CardTile } from "@/components/card-tile";
 import { CategoryFilters } from "@/components/category-filters";
+import { IndividualCompletionModal } from "@/components/individual-completion-modal";
 import { LoadingState } from "@/components/loading-state";
+import { individualResultTextsV1, isInterpretationResultCode } from "@/config/individual-results";
 import { useIndividualParticipation } from "@/context/individual-context";
 import { workshopConfig } from "@/config/workshop";
-import { filterCards, getPhase } from "@/domain/catalog";
-import { hasCompleteIndividualSelections, nextIncompleteIndividualPhase } from "@/domain/individual-flow";
-import { INDIVIDUAL_PHASE_IDS, type IndividualPhaseId } from "@/domain/individual-participation";
+import { filterCards, getCard, getPhase } from "@/domain/catalog";
+import { hasCompleteIndividualSelections, nextIncompleteIndividualPhase, orderedIndividualCardIds } from "@/domain/individual-flow";
+import { calculateInterpretationV1, INDIVIDUAL_PHASE_IDS, type IndividualPhaseId } from "@/domain/individual-participation";
 import type { CategoryId, WorkshopCard } from "@/domain/types";
 import { IndividualAbandonAction } from "./individual-abandon-action";
 import { IndividualSelectionTray } from "./individual-selection-tray";
@@ -23,10 +25,14 @@ const accentStyles = {
   violet: "border-[#072056] bg-[rgba(7,32,86,0.10)]",
 } as const;
 
-export function IndividualPhase({ phaseId, returnToResult = false }: { phaseId: IndividualPhaseId; returnToResult?: boolean }) {
+export function IndividualPhase({ phaseId }: { phaseId: IndividualPhaseId }) {
   const router = useRouter();
   const [activeFilter, setActiveFilter] = useState<CategoryId | "all">("all");
   const [detailCard, setDetailCard] = useState<WorkshopCard | null>(null);
+  const [showCompletionModal, setShowCompletionModal] = useState(false);
+  const [completionPending, setCompletionPending] = useState(false);
+  const [completionError, setCompletionError] = useState("");
+  const completionRequestActive = useRef(false);
   const state = useIndividualParticipation();
   const { completed, hydrated, leaving, setCurrentPhase } = state;
   const phase = getPhase(workshopConfig, phaseId)!;
@@ -35,6 +41,8 @@ export function IndividualPhase({ phaseId, returnToResult = false }: { phaseId: 
   const selectedIds = state.selectionsByPhase[phaseId] ?? [];
   const cards = filterCards(workshopConfig, phaseId, activeFilter);
   const nextIncompletePhaseId = nextIncompleteIndividualPhase(state.selectionsByPhase, phaseId);
+  const selectedCardIds = useMemo(() => orderedIndividualCardIds(state.selectionsByPhase), [state.selectionsByPhase]);
+  const resultCode = calculateInterpretationV1(selectedCardIds.map((id) => getCard(workshopConfig, id)?.categoryId ?? ""));
 
   useEffect(() => {
     if (!hydrated) return;
@@ -55,12 +63,49 @@ export function IndividualPhase({ phaseId, returnToResult = false }: { phaseId: 
   function continueFlow() {
     if (selectedIds.length !== 3) return;
     if (hasCompleteIndividualSelections(state.selectionsByPhase)) {
-      router.push("/individual/result");
+      setCompletionError("");
+      setShowCompletionModal(true);
       return;
     }
     if (nextIncompletePhaseId) {
       state.setCurrentPhase(nextIncompletePhaseId);
       router.push(`/individual/phase/${nextIncompletePhaseId}`);
+    }
+  }
+
+  function editCards() {
+    if (completionPending) return;
+    setCompletionError("");
+    setShowCompletionModal(false);
+    router.push("/individual/overview");
+  }
+
+  async function completeParticipation() {
+    if (completionRequestActive.current || !state.participationId || !state.writeToken) return;
+    completionRequestActive.current = true;
+    setCompletionPending(true);
+    setCompletionError("");
+
+    try {
+      const response = await fetch(`/api/individual/participations/${state.participationId}/complete`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ writeToken: state.writeToken, selectedCardIds }),
+      });
+      if (!response.ok) throw new Error("request_failed");
+
+      const payload: unknown = await response.json();
+      if (!payload || typeof payload !== "object") throw new Error("invalid_response");
+      const result = payload as Record<string, unknown>;
+      if (result.status !== "completed" || !isInterpretationResultCode(result.resultCode) || typeof result.completedAt !== "string") throw new Error("invalid_response");
+
+      state.markCompleted(result.resultCode, result.completedAt);
+      router.push("/individual/result");
+    } catch {
+      completionRequestActive.current = false;
+      setCompletionError("No se pudo finalizar la participación. Tus selecciones siguen guardadas; puedes reintentarlo.");
+    } finally {
+      setCompletionPending(false);
     }
   }
 
@@ -94,7 +139,7 @@ export function IndividualPhase({ phaseId, returnToResult = false }: { phaseId: 
           <IndividualSelectionTray
             phaseId={phaseId}
             selectedIds={selectedIds}
-            nextLabel={hasCompleteIndividualSelections(state.selectionsByPhase) ? returnToResult ? "Volver al resultado" : "Ver resultado" : "Continuar a la siguiente fase"}
+            nextLabel="Guardar y continuar"
             onRemove={(cardId) => state.toggle(phaseId, cardId)}
             onContinue={continueFlow}
           />
@@ -115,6 +160,15 @@ export function IndividualPhase({ phaseId, returnToResult = false }: { phaseId: 
             onToggle: () => state.toggle(phaseId, detailCard.id),
           }}
         /> : null}
+        {showCompletionModal && resultCode ? (
+          <IndividualCompletionModal
+            error={completionError}
+            interpretation={individualResultTextsV1[resultCode]}
+            pending={completionPending}
+            onEdit={editCards}
+            onComplete={completeParticipation}
+          />
+        ) : null}
       </section>
     </main>
   );

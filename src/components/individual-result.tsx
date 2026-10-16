@@ -2,28 +2,21 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { individualResultTextsV1, isInterpretationResultCode } from "@/config/individual-results";
+import { useEffect, useState } from "react";
+import { individualResultTextsV1 } from "@/config/individual-results";
 import { workshopConfig } from "@/config/workshop";
 import { useIndividualParticipation } from "@/context/individual-context";
 import { getCard, getPhase } from "@/domain/catalog";
-import { calculateInterpretationV1, INDIVIDUAL_PHASE_IDS } from "@/domain/individual-participation";
-import { firstIncompleteIndividualPhase, hasCompleteIndividualSelections, orderedIndividualCardIds } from "@/domain/individual-flow";
-import { IndividualAbandonAction } from "./individual-abandon-action";
+import { INDIVIDUAL_PHASE_IDS } from "@/domain/individual-participation";
 import { LoadingState } from "./loading-state";
 import { PhaseSelectionSummary } from "./phase-selection-summary";
 
 export function IndividualResult() {
   const router = useRouter();
   const state = useIndividualParticipation();
-  const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
-  const completionRequestActive = useRef(false);
   const hasParticipation = Boolean(state.participationId && state.collectiveId && (state.completed || state.writeToken));
-  const selectionsComplete = hasCompleteIndividualSelections(state.selectionsByPhase);
-  const selectedIds = useMemo(() => orderedIndividualCardIds(state.selectionsByPhase), [state.selectionsByPhase]);
-  const calculatedResultCode = calculateInterpretationV1(selectedIds.map((id) => getCard(workshopConfig, id)?.categoryId ?? ""));
-  const resultCode = state.completed ? state.resultCode : calculatedResultCode;
+  const resultCode = state.completed ? state.resultCode : null;
 
   useEffect(() => {
     if (!state.hydrated) return;
@@ -32,43 +25,12 @@ export function IndividualResult() {
       router.replace("/individual");
       return;
     }
-    if (!selectionsComplete) {
-      const phaseId = firstIncompleteIndividualPhase(state.selectionsByPhase) ?? INDIVIDUAL_PHASE_IDS[0];
-      router.replace(`/individual/phase/${phaseId}`);
+    if (!state.completed) {
+      router.replace("/individual/overview");
     }
-  }, [hasParticipation, router, selectionsComplete, state.hydrated, state.leaving, state.selectionsByPhase]);
+  }, [hasParticipation, router, state.completed, state.hydrated, state.leaving]);
 
-  if (!state.hydrated || state.leaving || !hasParticipation || !selectionsComplete || !resultCode) return <LoadingState />;
-
-  async function completeParticipation() {
-    if (state.completed || completionRequestActive.current || !state.participationId || !state.writeToken) return;
-    completionRequestActive.current = true;
-    setPending(true);
-    setError("");
-    try {
-      const response = await fetch(`/api/individual/participations/${state.participationId}/complete`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ writeToken: state.writeToken, selectedCardIds: selectedIds }),
-      });
-      if (!response.ok) {
-        completionRequestActive.current = false;
-        setError("No se pudo finalizar la participación. Tus selecciones siguen guardadas; puedes reintentarlo.");
-        return;
-      }
-
-      const payload: unknown = await response.json();
-      if (!payload || typeof payload !== "object") throw new Error("invalid_response");
-      const result = payload as Record<string, unknown>;
-      if (result.status !== "completed" || !isInterpretationResultCode(result.resultCode) || typeof result.completedAt !== "string") throw new Error("invalid_response");
-      state.markCompleted(result.resultCode, result.completedAt);
-    } catch {
-      completionRequestActive.current = false;
-      setError("No se pudo finalizar la participación. Tus selecciones siguen guardadas; puedes reintentarlo.");
-    } finally {
-      setPending(false);
-    }
-  }
+  if (!state.hydrated || state.leaving || !hasParticipation || !state.completed || !resultCode) return <LoadingState />;
 
   function startNewParticipation() {
     setError("");
@@ -98,24 +60,15 @@ export function IndividualResult() {
               const card = getCard(workshopConfig, cardId);
               return card?.phaseId === phaseId ? [card] : [];
             });
-            return <PhaseSelectionSummary key={phaseId} phase={phase} selectedCards={selectedCards} selectedCount={selectedCards.length} maxSelections={3} actionHref={state.completed ? undefined : `/individual/phase/${phaseId}?from=result`} actionLabel="Modificar selección" />;
+            return <PhaseSelectionSummary key={phaseId} phase={phase} selectedCards={selectedCards} selectedCount={selectedCards.length} maxSelections={3} />;
           })}
         </div>
 
         {error ? <p className="mt-8 rounded-xl border border-red-300 bg-red-50 p-4 text-sm text-red-950" role="alert">{error}</p> : null}
 
         <div className="mt-8 flex flex-wrap gap-3 border-t border-slate-200 pt-6">
-          {state.completed ? (
-            <>
-              <button type="button" onClick={startNewParticipation} className="min-h-11 rounded-lg bg-[#114dcd] px-7 text-sm font-bold text-white focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[#114dcd]">Nueva participación</button>
-              <Link href="/dashboard?origin=result" className="flex min-h-11 items-center rounded-lg border border-[#114dcd] bg-white px-7 text-sm font-bold text-[#114dcd] focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[#114dcd]">Ver resultados generales</Link>
-            </>
-          ) : (
-            <>
-              <button type="button" disabled={pending} onClick={completeParticipation} className="min-h-11 rounded-lg bg-[#114dcd] px-7 text-sm font-bold text-white focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[#114dcd] disabled:cursor-wait disabled:bg-[#7898dc]">{pending ? "Finalizando…" : "Finalizar"}</button>
-              <IndividualAbandonAction />
-            </>
-          )}
+          <button type="button" onClick={startNewParticipation} className="min-h-11 cursor-pointer rounded-lg bg-[#114dcd] px-7 text-sm font-bold text-white focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[#114dcd]">Iniciar nueva partida</button>
+          <Link href="/dashboard?origin=result" className="flex min-h-11 cursor-pointer items-center rounded-lg border border-[#114dcd] bg-white px-7 text-sm font-bold text-[#114dcd] focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[#114dcd]">Ver resultados generales</Link>
         </div>
       </section>
     </main>

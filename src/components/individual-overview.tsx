@@ -1,12 +1,10 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { workshopConfig } from "@/config/workshop";
 import { useIndividualParticipation } from "@/context/individual-context";
 import { getCard, getPhase } from "@/domain/catalog";
-import { hasCompleteIndividualSelections } from "@/domain/individual-flow";
 import { INDIVIDUAL_PHASE_IDS } from "@/domain/individual-participation";
 import { IndividualAbandonAction } from "./individual-abandon-action";
 import { LoadingState } from "./loading-state";
@@ -16,7 +14,6 @@ export function IndividualOverview() {
   const router = useRouter();
   const state = useIndividualParticipation();
   const hasParticipation = Boolean(state.participationId && state.collectiveId && (state.completed || state.writeToken));
-  const selectionsComplete = hasCompleteIndividualSelections(state.selectionsByPhase);
 
   useEffect(() => {
     if (!state.hydrated || state.leaving) return;
@@ -63,7 +60,6 @@ export function IndividualOverview() {
         </section>
 
         <div className="mt-8 flex flex-wrap items-center gap-3 border-t border-slate-200 pt-6">
-          {selectionsComplete ? <Link href="/individual/result" className="inline-flex min-h-11 items-center rounded-lg bg-[#114dcd] px-6 text-sm font-bold text-white focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[#114dcd]">Ver resultado</Link> : null}
           <IndividualAbandonAction />
         </div>
       </section>
