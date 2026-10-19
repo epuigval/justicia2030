@@ -26,8 +26,8 @@ function CardDetailDialog({ card, onClose, children }: { card: WorkshopCard; onC
   );
 }
 
-export function CardDetailModal({ card, selection, onClose }: { card: WorkshopCard; selection: CardDetailSelection; onClose: () => void }) {
-  return <CardDetailDialog card={card} onClose={onClose}><CardDetail card={card} selection={selection} onBack={onClose} /></CardDetailDialog>;
+export function CardDetailModal({ card, selection, onClose, reflectionHeading }: { card: WorkshopCard; selection: CardDetailSelection; onClose: () => void; reflectionHeading?: string }) {
+  return <CardDetailDialog card={card} onClose={onClose}><CardDetail card={card} selection={selection} onBack={onClose} reflectionHeading={reflectionHeading} /></CardDetailDialog>;
 }
 
 export function WorkshopCardDetailModal({ card, onClose }: { card: WorkshopCard; onClose: () => void }) {

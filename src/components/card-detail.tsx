@@ -14,7 +14,7 @@ export interface CardDetailSelection {
   onToggle: () => void;
 }
 
-export function CardDetail({ card, selection, backHref, onBack }: { card: WorkshopCard; selection: CardDetailSelection; backHref?: string; onBack?: () => void }) {
+export function CardDetail({ card, selection, backHref, onBack, reflectionHeading = "Para el debate" }: { card: WorkshopCard; selection: CardDetailSelection; backHref?: string; onBack?: () => void; reflectionHeading?: string }) {
   const { selected, disabled, locked, maxSelections, onToggle } = selection;
   const phase = getPhase(workshopConfig, card.phaseId);
   const category = getCategory(workshopConfig, card.categoryId);
@@ -31,7 +31,7 @@ export function CardDetail({ card, selection, backHref, onBack }: { card: Worksh
         <section className="rounded-2xl bg-orange-50 p-5"><h2 className="text-lg font-bold text-orange-900">El reto</h2><p className="mt-2 leading-7">{card.challenge}</p></section>
         <section className="rounded-2xl bg-blue-50 p-5"><h2 className="text-lg font-bold text-blue-950">La solución</h2><p className="mt-2 leading-7">{card.solution}</p></section>
         <section className="rounded-2xl bg-emerald-50 p-5"><h2 className="text-lg font-bold text-emerald-950">Beneficios</h2><ul className="mt-2 list-disc space-y-2 pl-5">{card.benefits.map((benefit) => <li key={benefit}>{benefit}</li>)}</ul></section>
-        <section className="rounded-2xl bg-violet-50 p-5"><h2 className="text-lg font-bold text-violet-950">Para el debate</h2><p className="mt-2 leading-7">{card.debateQuestion}</p></section>
+        <section className="rounded-2xl bg-violet-50 p-5"><h2 className="text-lg font-bold text-violet-950">{reflectionHeading}</h2><p className="mt-2 leading-7">{card.debateQuestion}</p></section>
       </div>
       {disabled && !locked ? <p className="mt-6 rounded-xl bg-amber-50 p-4 font-semibold text-amber-900">Máximo {maxSelections} tarjetas. Quita una selección para elegir otra.</p> : null}
       <div className="mt-8 flex flex-wrap gap-3">

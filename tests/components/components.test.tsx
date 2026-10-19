@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { CategoryFilters } from "@/components/category-filters";
 import { WorkshopCardDetailModal } from "@/components/card-detail-modal";
@@ -254,7 +254,10 @@ describe("componentes principales", () => {
     const user = userEvent.setup();
     const onClose = vi.fn();
     render(<WorkshopProvider scope="team"><WorkshopCardDetailModal card={workshopConfig.cards[0]} onClose={onClose} /></WorkshopProvider>);
-    expect(screen.getByRole("dialog", { name: `Detalle de ${workshopConfig.cards[0].title}` })).toBeInTheDocument();
+    const dialog = screen.getByRole("dialog", { name: `Detalle de ${workshopConfig.cards[0].title}` });
+    expect(dialog).toBeInTheDocument();
+    expect(within(dialog).getByRole("heading", { name: "Para el debate" })).toBeInTheDocument();
+    expect(within(dialog).queryByRole("heading", { name: "Para reflexionar" })).not.toBeInTheDocument();
     await user.keyboard("{Escape}");
     expect(onClose).toHaveBeenCalledOnce();
   });

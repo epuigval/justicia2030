@@ -309,6 +309,8 @@ describe("fases Individual", () => {
     const dialog = screen.getByRole("dialog", { name: `Detalle de ${card.title}` });
     expect(dialog).toBeInTheDocument();
     expect(within(dialog).getByRole("heading", { name: "El reto" })).toBeInTheDocument();
+    expect(within(dialog).getByRole("heading", { name: "Para reflexionar" })).toBeInTheDocument();
+    expect(within(dialog).queryByRole("heading", { name: "Para el debate" })).not.toBeInTheDocument();
     await user.click(within(dialog).getByRole("button", { name: "Seleccionar tarjeta" }));
     expect(within(dialog).getByText("Seleccionada")).toBeInTheDocument();
   });

@@ -151,6 +151,7 @@ export function IndividualPhase({ phaseId }: { phaseId: IndividualPhaseId }) {
         </div>
         {detailCard ? <CardDetailModal
           card={detailCard}
+          reflectionHeading="Para reflexionar"
           onClose={() => setDetailCard(null)}
           selection={{
             selected: selectedIds.includes(detailCard.id),
